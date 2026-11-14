@@ -1,0 +1,17 @@
+matrix: 697 variants x 17 traits
+bNMF phi scan (phi: K counts): 0.25: K6x20; 0.5: K5x19, K6x1; 1.0: K3x20
+bNMF K across 100 runs: {4: 1, 5: 91, 6: 8} -> K = 5
+Ward hierarchical at K=5; silhouette by k: 2:0.277, 3:0.235, 4:0.275, 5:0.255, 6:0.265, 7:0.261, 8:0.268, 9:0.247, 10:0.230
+concordance hclust vs bNMF: ARI = 0.339
+hclust clusters:
+   c0 (n=84): hr+, dbp+, pp-
+   c1 (n=111): pp+, hr-, dbp-
+   c2 (n=72): bmi+, fi+, t2d+
+   c3 (n=61): egfr-, urate+, uacr+
+   c4 (n=369): pp-, bmi-, dbp-
+bnmf clusters:
+   c0 (n=153): pp-, hr+, dbp+
+   c1 (n=40): ldl+, alt+, tg+
+   c2 (n=74): bmi+, fi+, t2d+
+   c3 (n=65): egfr-, urate+, uacr+
+   c4 (n=365): pp+, hr-, dbp-

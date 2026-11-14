@@ -1,0 +1,26 @@
+{
+  "scale": 10.0,
+  "label": "per 10 mmHg higher SBP",
+  "n_cluster_variants": 697,
+  "traits": [
+    "sbp",
+    "pp",
+    "dbp",
+    "ldl",
+    "bmi",
+    "hr",
+    "egfr",
+    "urate",
+    "t2d",
+    "tg",
+    "hdl",
+    "crp",
+    "fi",
+    "uacr",
+    "whradjbmi",
+    "alt",
+    "na_urine",
+    "k_urine"
+  ],
+  "n_mr_instruments": 614
+}

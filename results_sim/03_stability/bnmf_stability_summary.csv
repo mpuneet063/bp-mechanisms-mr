@@ -1,0 +1,6 @@
+cluster,n_variants,name,run_coassign_within,noise_keep_prob,goes_to_mr
+c0,153,"pp-, hr+, dbp+",0.99418414,0.8921568627450981,True
+c1,40,"ldl+, alt+, tg+",1.0,0.8587499999999999,True
+c2,74,"bmi+, fi+, t2d+",1.0,0.9378378378378377,True
+c3,65,"egfr-, urate+, uacr+",0.99729496,0.8899999999999999,True
+c4,365,"pp+, hr-, dbp-",0.9987502,0.8890410958904109,True

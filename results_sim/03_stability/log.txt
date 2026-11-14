@@ -1,0 +1,10 @@
+hclust noise-bootstrap ARI vs main: median 0.722 (IQR 0.664-0.759)
+hclust stability by K (mean Jaccard): 2:0.68, 3:0.75, 4:0.88, 5:0.82, 6:0.84, 7:0.77, 8:0.76, 9:0.77, 10:0.76
+leave-one-trait-out ARI (lowest 5): pp:0.47, egfr:0.53, uacr:0.53, bmi:0.58, urate:0.61
+bNMF noise-bootstrap ARI vs main (20 reps): median 0.715
+hclust per-cluster stability:
+   c0 n=  84 Jaccard=0.82 keep_prob=0.81 [stable] MR=yes :: hr+, dbp+, pp-
+   c1 n= 111 Jaccard=0.86 keep_prob=0.82 [stable] MR=yes :: pp+, hr-, dbp-
+   c2 n=  72 Jaccard=0.96 keep_prob=0.93 [stable] MR=yes :: bmi+, fi+, t2d+
+   c3 n=  61 Jaccard=0.69 keep_prob=0.85 [moderate] MR=yes :: egfr-, urate+, uacr+
+   c4 n= 369 Jaccard=0.84 keep_prob=0.92 [stable] MR=yes :: pp-, bmi-, dbp-

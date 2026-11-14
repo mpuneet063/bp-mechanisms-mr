@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.ieugwaspy.json
+data/raw/cache/
+data/raw/*.zip
+*.npy
+results*/01_prepare/harmonised.csv.gz
+results_sim_fast/
+.ipynb_checkpoints/
+data/sim_raw/

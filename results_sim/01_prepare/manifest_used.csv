@@ -1,0 +1,34 @@
+key,role,id,trait,unit,sample_size,ncase,ncontrol,how
+sbp,exposure,sim-sbp,systolic blood pressure,mmHg,757601,,,simulated
+dbp,cluster_trait,sim-dbp,dbp,SD,317999,,,simulated
+pp,cluster_trait,sim-pp,pp,SD,367825,,,simulated
+bmi,cluster_trait,sim-bmi,bmi,SD,209803,,,simulated
+whradjbmi,cluster_trait,sim-whradjbmi,whradjbmi,SD,544935,,,simulated
+height,cluster_trait,sim-height,height,SD,642769,,,simulated
+ldl,cluster_trait,sim-ldl,ldl,SD,292886,,,simulated
+hdl,cluster_trait,sim-hdl,hdl,SD,412670,,,simulated
+tg,cluster_trait,sim-tg,tg,SD,502372,,,simulated
+t2d,cluster_trait,sim-t2d,t2d,SD,632584,74124.0,824006.0,simulated
+fg,cluster_trait,sim-fg,fg,SD,456108,,,simulated
+fi,cluster_trait,sim-fi,fi,SD,342464,,,simulated
+hba1c,cluster_trait,sim-hba1c,hba1c,SD,538491,,,simulated
+egfr,cluster_trait,sim-egfr,egfr,SD,357908,,,simulated
+urate,cluster_trait,sim-urate,urate,SD,492810,,,simulated
+uacr,cluster_trait,sim-uacr,uacr,SD,485414,,,simulated
+na_urine,cluster_trait,sim-na_urine,na_urine,SD,551342,,,simulated
+k_urine,cluster_trait,sim-k_urine,k_urine,SD,191798,,,simulated
+hr,cluster_trait,sim-hr,hr,SD,217988,,,simulated
+crp,cluster_trait,sim-crp,crp,SD,736146,,,simulated
+alt,cluster_trait,sim-alt,alt,SD,354670,,,simulated
+alcohol,cluster_trait,sim-alcohol,alcohol,SD,230023,,,simulated
+smoking,cluster_trait,sim-smoking,smoking,SD,209629,,,simulated
+stroke_any,outcome,sim-stroke_any,stroke_any,log odds,1308460,73652.0,1234808.0,simulated
+stroke_is,outcome,sim-stroke_is,stroke_is,log odds,1296908,62100.0,1234808.0,simulated
+stroke_las,outcome,sim-stroke_las,stroke_las,log odds,1241207,6399.0,1234808.0,simulated
+stroke_ces,outcome,sim-stroke_ces,stroke_ces,log odds,1245612,10804.0,1234808.0,simulated
+stroke_svs,outcome,sim-stroke_svs,stroke_svs,log odds,1241619,6811.0,1234808.0,simulated
+ich,outcome,sim-ich,ich,log odds,3026,1545.0,1481.0,simulated
+cad,outcome,sim-cad,cad,log odds,1165690,181522.0,984168.0,simulated
+fg_stroke,replication,sim-fg_stroke,fg_stroke,log odds,212774,10551.0,202223.0,simulated
+fg_is,replication,sim-fg_is,fg_is,log odds,210269,8046.0,202223.0,simulated
+fg_chd,replication,sim-fg_chd,fg_chd,log odds,218792,21012.0,197780.0,simulated

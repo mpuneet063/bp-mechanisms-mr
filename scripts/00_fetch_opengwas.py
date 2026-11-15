@@ -120,6 +120,14 @@ MVMR_KEYS = ["bmi", "ldl", "t2d"]  # extra instruments pulled for multivariable 
 # --------------------------------------------------------------------------- #
 # HTTP helpers
 # --------------------------------------------------------------------------- #
+class ClientError(Exception):
+    """4xx other than 401/429: the request itself was rejected (bad id, bad variant, bad parameter)."""
+
+    def __init__(self, status: int, body: str):
+        super().__init__(f"HTTP {status}: {body[:300]}")
+        self.status, self.body = status, body
+
+
 class Api:
     def __init__(self, jwt: str):
         self.s = requests.Session()
@@ -154,6 +162,8 @@ class Api:
                 continue
             if r.status_code == 401:
                 sys.exit("401 Unauthorized: check OPENGWAS_JWT (get one at https://api.opengwas.io/profile/)")
+            if 400 <= r.status_code < 500:
+                raise ClientError(r.status_code, r.text)
             r.raise_for_status()
             out = r.json()
             if cache_key:
@@ -223,6 +233,36 @@ def resolve(spec, catalog: pd.DataFrame):
 # --------------------------------------------------------------------------- #
 # Main
 # --------------------------------------------------------------------------- #
+def lookup(api: "Api", sid: str, variants: list[str], proxies: int, failed: list, depth: int = 0) -> list:
+    """
+    Associations for one study. On a rejected request (HTTP 4xx): log the server's reason, retry without
+    LD proxies, then split the chunk in half recursively so one bad variant cannot sink the rest.
+    """
+    key = "assoc_" + sid + "_" + hashlib.md5(",".join(variants).encode()).hexdigest()[:12] + ("" if proxies else "_np")
+    payload = dict(variant=variants, id=[sid], proxies=proxies, r2=0.8, align_alleles=1, palindromes=1,
+                   maf_threshold=0.3)
+    try:
+        res = api.call("associations", payload, cache_key=key)
+        return res if isinstance(res, list) else []
+    except ClientError as e:
+        if depth == 0:
+            log(f"  {sid}: request rejected ({e}); retrying")
+        if proxies:
+            try:
+                res = api.call("associations", dict(payload, proxies=0), cache_key=key + "_np")
+                if depth == 0:
+                    log(f"  {sid}: OK without LD proxies for this chunk")
+                return res if isinstance(res, list) else []
+            except ClientError:
+                pass
+        if len(variants) == 1:
+            failed.append(dict(study=sid, variant=variants[0], reason=e.body[:200]))
+            return []
+        mid = len(variants) // 2
+        return (lookup(api, sid, variants[:mid], proxies, failed, depth + 1)
+                + lookup(api, sid, variants[mid:], proxies, failed, depth + 1))
+
+
 def chunks(xs, n):
     for i in range(0, len(xs), n):
         yield xs[i:i + n]
@@ -331,21 +371,39 @@ def main():
                 inst_rows.append(dict(rsid=h["rsid"], source=f"mvmr_{k}"))
             log(f"MVMR instruments {k}: {len(t)}")
     inst = pd.DataFrame(inst_rows).drop_duplicates()
-    snps = sorted(inst["rsid"].unique())
+    snps = sorted({str(x).strip() for x in inst["rsid"].dropna()})
+    bad = [x for x in snps if not re.match(r"^(rs\d+|\d{1,2}:\d+)$", x)]
+    if bad:
+        log(f"  dropping {len(bad)} malformed variant ids, e.g. {bad[:5]}")
+    snps = [x for x in snps if x not in set(bad)]
     log(f"{len(snps)} unique variants to look up")
 
     # 3. look-ups
-    long_rows = []
+    long_rows, failed, dead_studies = [], [], []
     study_ids = sorted(set(ids.values()))
+    probe = th[0]["rsid"] if th else snps[0]  # an SBP lead variant: valid in any study
     for i, sid in enumerate(study_ids, 1):
-        n_before = len(long_rows)
-        for j, ch in enumerate(chunks(snps, args.chunk)):
-            key = "assoc_" + sid + "_" + hashlib.md5(",".join(ch).encode()).hexdigest()[:12] + ("_np" if args.no_proxies else "")
-            res = api.call("associations", dict(variant=ch, id=[sid], proxies=0 if args.no_proxies else 1, r2=0.8,
-                                                 align_alleles=1, palindromes=1, maf_threshold=0.3), cache_key=key)
-            if isinstance(res, list):
-                long_rows.extend(res)
-        log(f"  [{i}/{len(study_ids)}] {sid}: {len(long_rows) - n_before} associations")
+        n_before, n_failed = len(long_rows), len(failed)
+        try:  # is the study itself usable? one cheap request before 30+ chunks
+            api.call("associations", dict(variant=[probe], id=[sid], proxies=0, r2=0.8, align_alleles=1,
+                                          palindromes=1, maf_threshold=0.3), cache_key=f"probe_{sid}_{probe}")
+        except ClientError as e:
+            log(f"  [{i}/{len(study_ids)}] {sid}: SKIPPED - the API rejects this study ({e})")
+            dead_studies.append(dict(study=sid, reason=e.body[:300]))
+            continue
+        for ch in chunks(snps, args.chunk):
+            long_rows.extend(lookup(api, sid, ch, 0 if args.no_proxies else 1, failed))
+        extra = f", {len(failed) - n_failed} variants rejected" if len(failed) > n_failed else ""
+        log(f"  [{i}/{len(study_ids)}] {sid}: {len(long_rows) - n_before} associations{extra}")
+    if failed:
+        pd.DataFrame(failed).to_csv(OUT / "rejected_variants.csv", index=False)
+    if dead_studies:
+        pd.DataFrame(dead_studies).to_csv(OUT / "rejected_studies.csv", index=False)
+        dead = {d["study"] for d in dead_studies}
+        manifest.loc[manifest["id"].isin(dead), "how"] += " | REJECTED by API at look-up"
+        manifest.to_csv(OUT / "manifest.csv", index=False)
+        if ids["sbp"] in dead:
+            sys.exit(f"The SBP study {ids['sbp']} was rejected by the API; see rejected_studies.csv")
     assoc = pd.DataFrame(long_rows)
     keep = [c for c in ["id", "trait", "rsid", "chr", "position", "ea", "nea", "eaf", "beta", "se", "p", "n",
                         "proxy", "target_snp", "proxy_snp", "rsq"] if c in assoc.columns]

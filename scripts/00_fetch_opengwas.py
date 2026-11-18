@@ -22,7 +22,8 @@ What it does
 4. LD-clumps the BP variants at r2 < 0.001 and r2 < 0.05 (1000G EUR, server side).
 
 It caches each API call under data/raw/cache/, so if it stops (rate limit,
-network), just run it again and it carries on where it left off.
+network, a runtime that dies), just run it again and it carries on where it left off.
+On Colab, keep the repo on Google Drive so the cache survives runtime restarts.
 """
 from __future__ import annotations
 
@@ -137,7 +138,10 @@ class Api:
         if cache_key:
             f = CACHE / f"{cache_key}.json"
             if f.exists():
-                return json.loads(f.read_text())
+                try:
+                    return json.loads(f.read_text())
+                except (json.JSONDecodeError, OSError):  # half-written by a runtime that died: fetch again
+                    f.unlink(missing_ok=True)
         url = API + path
         for attempt in range(tries):
             try:
@@ -166,8 +170,10 @@ class Api:
                 raise ClientError(r.status_code, r.text)
             r.raise_for_status()
             out = r.json()
-            if cache_key:
-                (CACHE / f"{cache_key}.json").write_text(json.dumps(out))
+            if cache_key:  # atomic: write to a temp file, then rename, so a crash never leaves a partial file
+                tmp = CACHE / f".{cache_key}.json.tmp"
+                tmp.write_text(json.dumps(out))
+                os.replace(tmp, CACHE / f"{cache_key}.json")
             return out
         raise RuntimeError(f"Giving up on {path} after {tries} attempts")
 
@@ -391,8 +397,11 @@ def main():
             log(f"  [{i}/{len(study_ids)}] {sid}: SKIPPED - the API rejects this study ({e})")
             dead_studies.append(dict(study=sid, reason=e.body[:300]))
             continue
-        for ch in chunks(snps, args.chunk):
+        n_chunks = (len(snps) + args.chunk - 1) // args.chunk
+        for j, ch in enumerate(chunks(snps, args.chunk), 1):
             long_rows.extend(lookup(api, sid, ch, 0 if args.no_proxies else 1, failed))
+            if j % 10 == 0 and j < n_chunks:
+                print(f"    {sid}: chunk {j}/{n_chunks}", flush=True)
         extra = f", {len(failed) - n_failed} variants rejected" if len(failed) > n_failed else ""
         log(f"  [{i}/{len(study_ids)}] {sid}: {len(long_rows) - n_before} associations{extra}")
     if failed:

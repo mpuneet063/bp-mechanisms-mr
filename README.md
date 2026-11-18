@@ -38,6 +38,35 @@ simulation check, fetches the data, runs every experiment and writes
 `/kaggle/working/results_bundle.zip`. Use `SKIP_SIM=1` to skip the simulation check, or `FAST=1` for a quick
 smoke test.
 
+## Run it on Google Colab (progress survives runtime restarts)
+
+Keep the repo on Google Drive. The fetch caches every API response in `data/raw/cache/`, and each finished
+analysis step leaves a `.done` marker. After a runtime dies, re-run cells 1 and 3 and the run continues where
+it stopped. Upload `bp-mechanisms-mr.zip` (and optionally the Keaton workbook) to your Drive first, and add
+`OPENGWAS_JWT` under Colab **Secrets**.
+
+```python
+# Cell 1 - every session
+from google.colab import drive, userdata
+import os
+drive.mount("/content/drive")
+os.environ["OPENGWAS_JWT"] = userdata.get("OPENGWAS_JWT")
+os.environ["KEATON_XLSX"] = "/content/drive/MyDrive/keaton_supp.xlsx"   # optional
+```
+```python
+# Cell 2 - once: unpack the repo onto Drive
+import zipfile, os
+if not os.path.exists("/content/drive/MyDrive/bp-mechanisms-mr"):
+    zipfile.ZipFile("/content/drive/MyDrive/bp-mechanisms-mr.zip").extractall("/content/drive/MyDrive/")
+```
+```bash
+%%bash
+# Cell 3 - every session: resumes automatically
+cd /content/drive/MyDrive/bp-mechanisms-mr
+SKIP_SIM=1 bash kaggle_run.sh
+```
+The results bundle is written to `MyDrive/results_bundle.zip`. Use a CPU runtime; the GPU is never used.
+
 ### Running the pieces yourself
 
 | Script | What it does |

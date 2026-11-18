@@ -8,17 +8,21 @@
 #   !bash /kaggle/input/<your-dataset>/bp-mechanisms-mr/kaggle_run.sh
 #
 # Set SKIP_SIM=1 to skip the simulation check, FAST=1 for small bootstrap counts.
+# Safe to re-run after a crash: the fetch resumes from data/raw/cache and finished analysis steps are skipped.
 set -euo pipefail
 SRC="$(cd "$(dirname "$0")" && pwd)"
-WORK="${WORK:-/kaggle/working/bp-mechanisms-mr}"
-if [[ "$SRC" != "$WORK" ]]; then            # /kaggle/input is read-only: work on a copy
-  mkdir -p "$WORK"; cp -r "$SRC/." "$WORK/"
+# Kaggle: /kaggle/input is read-only, so work on a copy in /kaggle/working.
+# Anywhere else (Colab with the repo on Google Drive, a laptop): run in place, so progress persists.
+if [[ "$SRC" == /kaggle/input/* ]]; then DEFAULT_WORK=/kaggle/working/bp-mechanisms-mr; else DEFAULT_WORK="$SRC"; fi
+WORK="${WORK:-$DEFAULT_WORK}"
+if [[ "$SRC" != "$WORK" ]]; then
+  mkdir -p "$WORK"; cp -rn "$SRC/." "$WORK/"   # -n: never overwrite progress already in the working copy
 fi
 cd "$WORK"
 chmod +x ./*.sh
 bash setup.sh
 FASTFLAG=(); [[ "${FAST:-0}" == "1" ]] && FASTFLAG=(--fast)
-if [[ "${SKIP_SIM:-0}" != "1" ]]; then
+if [[ "${SKIP_SIM:-0}" != "1" && ! -f results_sim_fast/sim_validation.md ]]; then
   bash run_simulation_check.sh --fast
 fi
 bash fetch_data.sh

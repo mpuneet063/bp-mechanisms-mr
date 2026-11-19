@@ -18,7 +18,10 @@ What it does
 2. Builds the variant list: SBP genome-wide hits (Evangelou 2018, ieu-b-38),
    plus the Keaton 2024 rsIDs if the supplementary table is supplied, plus
    instruments for BMI, LDL and T2D (needed for multivariable MR).
-3. Looks every variant up in every study (LD proxies r2 >= 0.8 allowed).
+3. Gets every variant's association in every study. Default (--source files): stream each
+   study's full summary-statistics file (GWAS-VCF) from OpenGWAS and keep only our variants;
+   about 1-3 min a study, one small extract per study saved as a checkpoint. No LD proxies.
+   --source api: the per-variant API look-ups instead (LD proxies, but ~2 min per 64 variants).
 4. LD-clumps the BP variants at r2 < 0.001 and r2 < 0.05 (1000G EUR, server side).
 
 It caches each API call under data/raw/cache/, so if it stops (rate limit,
@@ -73,8 +76,9 @@ STUDY_SPECS = [
     dict(key="hdl", role="cluster_trait", pin="ieu-b-109", all=["hdl cholesterol"]),
     dict(key="tg", role="cluster_trait", pin="ieu-b-111", all=["triglycerides"]),
     # glycaemic
+    # largest European genome-wide T2D GWAS by cases (an author preference forced Mahajan 2014 once 2018 was filtered out)
     dict(key="t2d", role="cluster_trait", all=["type 2 diabetes"],
-         exclude=["adjusted", "bmi", "family", "age", "neph", "retin", "neuro"], author="Mahajan", binary=True),
+         exclude=["adjusted", "bmi", "family", "age", "neph", "retin", "neuro"], binary=True, european_only=True),
     dict(key="fg", role="cluster_trait", all=["fasting glucose"], exclude=["interaction", "adjusted for bmi"]),
     dict(key="fi", role="cluster_trait", all=["fasting insulin"], exclude=["interaction", "adjusted for bmi"]),
     dict(key="hba1c", role="cluster_trait", any=["hba1c", "glycated haemoglobin", "glycated hemoglobin"]),
@@ -249,6 +253,8 @@ def resolve(spec, catalog: pd.DataFrame):
     c["_eur"] = pop.str.contains("european").astype(int)
     c["_mixed"] = pop.str.contains("mixed").astype(int)
     c = c[(c["_eur"] == 1) | (c["_mixed"] == 1)] if ((c["_eur"] + c["_mixed"]) > 0).any() else c
+    if spec.get("european_only") and (c["_eur"] == 1).any():
+        c = c[c["_eur"] == 1]
     # genome-wide studies only: exome/targeted arrays (e.g. Surendran 2020 pulse pressure) miss most variants
     nsnp = c["nsnp"].apply(_num)
     gw = c[(nsnp == 0) | (nsnp >= MIN_NSNP)]
@@ -328,6 +334,148 @@ def lookup(api: "Api", sid: str, variants: list[str], proxies: int, failed: list
                 + lookup(api, sid, variants[mid:], proxies, failed, depth + 1))
 
 
+# --------------------------------------------------------------------------- #
+# Whole-file mode: stream each study's GWAS-VCF and keep only our variants
+# --------------------------------------------------------------------------- #
+def _vcf_urls(obj, sid):
+    """Every string in an API answer that looks like a link to the study's .vcf.gz (not the index)."""
+    out = []
+    if isinstance(obj, dict):
+        for v in obj.values():
+            out += _vcf_urls(v, sid)
+    elif isinstance(obj, list):
+        for v in obj:
+            out += _vcf_urls(v, sid)
+    elif isinstance(obj, str) and obj.startswith("http") and ".vcf.gz" in obj and ".tbi" not in obj:
+        out.append(obj)
+    return sorted(out, key=lambda u: sid not in u)
+
+
+def file_links(api, sid):
+    """Download links for one study: the API's (possibly temporary, signed) link first, the legacy public path last."""
+    links = []
+    try:
+        links = _vcf_urls(api.call("gwasinfo/files", dict(id=[sid])), sid)
+    except Exception as e:  # noqa: BLE001
+        log(f"  {sid}: no link from the API ({e}); trying the public path")
+    links.append(f"https://gwas.mrcieu.ac.uk/files/{sid}/{sid}.vcf.gz")
+    return links
+
+
+def parse_vcf_stream(lines, wanted: set, sid: str, default_n=None):
+    """Keep GWAS-VCF data lines whose ID is in `wanted`. ES = effect of ALT, LP = -log10 p, AF = ALT frequency."""
+    rows = []
+    for line in lines:
+        if line.startswith("#"):
+            continue
+        f = line.rstrip("\n").split("\t")
+        if len(f) < 10:
+            continue
+        ids = f[2].split(";")
+        hit = next((x for x in ids if x in wanted), None)
+        if hit is None or "," in f[4]:
+            continue
+        vals = dict(zip(f[8].split(":"), f[9].split(":")))
+        try:
+            beta, se = float(vals["ES"]), float(vals["SE"])
+        except (KeyError, ValueError):
+            continue
+        lp = vals.get("LP")
+        try:
+            p = 10 ** (-float(lp)) if lp not in (None, ".") else None
+        except ValueError:
+            p = None
+        def num(k):
+            try:
+                return float(vals[k])
+            except (KeyError, ValueError):
+                return None
+        n = num("SS")
+        rows.append(dict(id=sid, trait="", rsid=hit, chr=f[0], position=int(f[1]), ea=f[4].upper(), nea=f[3].upper(),
+                         eaf=num("AF"), beta=beta, se=se, p=p, n=n if n is not None else default_n, proxy=False))
+    return rows
+
+
+def extract_study(api, sid, wanted: set, scratch: Path | None, default_n=None, tries=3):
+    """Stream one study's file, filter it, save the extract (the checkpoint). Returns (rows, status)."""
+    import gzip
+    import io
+    done = CACHE / f"extract_{sid}.csv.gz"
+    if done.exists():
+        try:
+            return pd.read_csv(done).to_dict("records"), "cached"
+        except Exception:  # noqa: BLE001 - a broken checkpoint is redone
+            done.unlink(missing_ok=True)
+    last = None
+    for attempt in range(tries):
+        for url in file_links(api, sid):  # links are re-requested each attempt: signed links expire
+            try:
+                t0 = time.time()
+                r = requests.get(url, stream=True, timeout=(30, 300))
+                if r.status_code in (401, 403):  # some hosts want the OpenGWAS token; signed links must NOT get it
+                    r.close()
+                    r = requests.get(url, stream=True, timeout=(30, 300), headers={"Authorization": api.s.headers["Authorization"]})
+                with r:
+                    if r.status_code != 200:
+                        last = f"HTTP {r.status_code} from {url.split('?')[0]}"
+                        continue
+                    raw = r.raw
+                    raw.decode_content = True
+                    if scratch is not None:  # keep the whole file too (re-extraction later needs no download)
+                        scratch.mkdir(parents=True, exist_ok=True)
+                        keep = scratch / f"{sid}.vcf.gz"
+                        tmp = keep.with_suffix(".part")
+                        with open(tmp, "wb") as fh:
+                            for chunk in r.iter_content(1 << 20):
+                                fh.write(chunk)
+                        os.replace(tmp, keep)
+                        stream = gzip.open(keep, "rt")
+                    else:
+                        stream = io.TextIOWrapper(gzip.GzipFile(fileobj=raw), encoding="utf-8")
+                    with stream:
+                        rows = parse_vcf_stream(stream, wanted, sid, default_n)
+                secs = time.time() - t0
+                tmpc = CACHE / f".extract_{sid}.csv.gz.tmp"
+                pd.DataFrame(rows).to_csv(tmpc, index=False, compression="gzip")
+                os.replace(tmpc, done)
+                return rows, f"downloaded in {secs / 60:.1f} min"
+            except (requests.RequestException, OSError, EOFError, ValueError) as e:
+                last = f"{type(e).__name__}: {e}"
+        time.sleep(15 * (attempt + 1))
+    return None, f"FAILED ({last})"
+
+
+def fetch_by_files(api, study_ids, snps, catalog, workers=3, scratch=None):
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    wanted = set(snps)
+    long_rows, report, dead = [], [], []
+
+    def one(sid):
+        n = catalog.loc[sid, "sample_size"] if sid in catalog.index else None
+        try:
+            n = float(n) if n is not None else None
+        except (TypeError, ValueError):
+            n = None
+        return sid, extract_study(api, sid, wanted, scratch, default_n=n)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futs = [pool.submit(one, sid) for sid in study_ids]
+        for k, fut in enumerate(as_completed(futs), 1):
+            sid, (rows, status) = fut.result()
+            if rows is None:
+                dead.append(dict(study=sid, reason=status))
+                log(f"  [{k}/{len(study_ids)}] {sid}: {status}")
+                continue
+            found = len({r["rsid"] for r in rows})
+            report.append(dict(study=sid, found=found, wanted=len(wanted), missing_pct=round(100 * (1 - found / len(wanted)), 1),
+                               status=status))
+            log(f"  [{k}/{len(study_ids)}] {sid}: {found}/{len(wanted)} variants found "
+                f"({100 * (1 - found / len(wanted)):.1f}% missing), {status}")
+            long_rows.extend(rows)
+    pd.DataFrame(report).sort_values("missing_pct", ascending=False).to_csv(OUT / "file_extract_report.csv", index=False)
+    return long_rows, dead
+
+
 def chunks(xs, n):
     for i in range(0, len(xs), n):
         yield xs[i:i + n]
@@ -368,6 +516,11 @@ def main():
     ap.add_argument("--chunk", type=int, default=MAX_ASSOC_PER_REQUEST,
                     help=f"variants per association call (API maximum {MAX_ASSOC_PER_REQUEST})")
     ap.add_argument("--no-proxies", action="store_true")
+    ap.add_argument("--source", choices=["files", "api"], default="files",
+                    help="files (default): stream each study's full summary file; api: per-variant look-ups")
+    ap.add_argument("--workers", type=int, default=3, help="studies downloaded at once (files mode)")
+    ap.add_argument("--keep-files", type=Path, default=None,
+                    help="also save each full .vcf.gz in this folder (files mode); off by default")
     args = ap.parse_args()
     args.chunk = max(1, min(args.chunk, MAX_ASSOC_PER_REQUEST))
 
@@ -455,10 +608,14 @@ def main():
     snps = [x for x in snps if x not in set(bad)]
     log(f"{len(snps)} unique variants to look up")
 
-    # 3. look-ups
+    # 3. associations for every variant in every study
     long_rows, failed, dead_studies = [], [], []
     study_ids = sorted(set(ids.values()))
     probe = th[0]["rsid"] if th else snps[0]  # an SBP lead variant: valid in any study
+    if args.source == "files":
+        log(f"Streaming {len(study_ids)} study files, {args.workers} at a time (checkpoint per study in {CACHE})")
+        long_rows, dead_studies = fetch_by_files(api, study_ids, snps, catalog, args.workers, args.keep_files)
+        study_ids = []  # skip the per-variant API loop below
     for i, sid in enumerate(study_ids, 1):
         n_before, n_failed = len(long_rows), len(failed)
         try:  # is the study itself usable? one cheap request before 30+ chunks

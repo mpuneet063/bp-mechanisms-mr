@@ -72,7 +72,7 @@ The results bundle is written to `MyDrive/results_bundle.zip`. Use a CPU runtime
 | Script | What it does |
 |---|---|
 | `setup.sh` | install Python dependencies |
-| `fetch_data.sh` | **data requirements**: resolves OpenGWAS study IDs, pulls instruments and look-ups into `data/raw/`, prints the study manifest. Resumable. |
+| `fetch_data.sh` | **data requirements**: resolves OpenGWAS study IDs, then streams each study's full summary-statistics file and keeps only our variants (about 1-2 h for 34 studies; one checkpoint per study). Prints the study manifest and a per-study missing-variant report. `FETCH_SOURCE=api` uses the old per-variant look-ups (~2 min per 64 variants). |
 | `run_experiments.sh [--fast] [--raw DIR] [--out DIR]` | runs experiments 01–07 in order, logging to `<out>/run.log` |
 | `run_simulation_check.sh [--fast]` | unit tests, then the full pipeline on simulated data with known truth |
 | `kaggle_run.sh` | all of the above, in one go |

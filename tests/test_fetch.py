@@ -91,3 +91,28 @@ def test_proxy_rows_keyed_by_target(tmp_path):
     pd.DataFrame([dict(id="e", rsid="rs777", ea="A", nea="G", eaf=0.3, beta=0.1, se=0.01, p=1e-5, n=1,
                        proxy=True, target_snp="rs1")]).to_csv(tmp_path / "associations.csv.gz", index=False)
     assert load_raw(tmp_path).assoc["rsid"].tolist() == ["rs1"]
+
+
+def test_parse_vcf_stream_keeps_only_wanted_and_reads_format():
+    lines = [
+        "##fileformat=VCFv4.2\n",
+        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS\n",
+        "1\t100\trs1\tA\tG\t.\tPASS\t.\tES:SE:LP:AF:SS:ID\t0.2:0.05:4:0.3:1000:rs1\n",
+        "1\t200\trs2\tC\tT\t.\tPASS\t.\tSE:ES:LP:AF:ID\t0.01:-0.1:2:0.6:rs2\n",   # other FORMAT order, no SS
+        "1\t300\trs3\tA\tG,T\t.\tPASS\t.\tES:SE:LP:AF:SS:ID\t0.1:0.01:5:0.2:900:rs3\n",  # multi-allelic: skipped
+        "1\t400\trs4\tA\tG\t.\tPASS\t.\tES:SE:LP:AF:SS:ID\t0.1:0.01:5:0.2:900:rs4\n",   # not wanted
+    ]
+    rows = fetch.parse_vcf_stream(lines, {"rs1", "rs2", "rs3"}, "s1", default_n=555)
+    assert [r["rsid"] for r in rows] == ["rs1", "rs2"]
+    assert rows[0]["ea"] == "G" and rows[0]["nea"] == "A" and rows[0]["p"] == pytest.approx(1e-4)
+    assert rows[1]["beta"] == pytest.approx(-0.1) and rows[1]["n"] == 555
+
+
+def test_t2d_takes_largest_european_study():
+    cat = pd.DataFrame([
+        dict(id="m14", trait="Type 2 diabetes", author="Mahajan A", year=2014, population="Mixed", sample_size=110452, ncase=26488, nsnp=2.5e6),
+        dict(id="xue", trait="Type 2 diabetes", author="Xue A", year=2018, population="European", sample_size=655666, ncase=62892, nsnp=5e6),
+        dict(id="small", trait="Type 2 diabetes", author="X", year=2020, population="European", sample_size=50000, ncase=5000, nsnp=8e6),
+    ]).set_index("id")
+    sp = next(s for s in fetch.STUDY_SPECS if s["key"] == "t2d")
+    assert fetch.resolve(sp, cat)[0] == "xue"

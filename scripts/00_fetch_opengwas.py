@@ -66,9 +66,14 @@ STUDY_SPECS = [
     dict(key="dbp", role="cluster_trait", pin="ieu-b-39", all=["diastolic blood pressure"], author="Evangelou"),
     dict(key="pp", role="cluster_trait", all=["pulse pressure"], author=["Evangelou", "Keaton", "Warren"]),
     # adiposity / anthropometry
-    dict(key="bmi", role="cluster_trait", pin="ieu-b-40", all=["body mass index"],
-         exclude=["adjusted", "childhood", "change", "age"], author="Yengo"),
-    dict(key="whradjbmi", role="cluster_trait", all=["waist", "hip"], any=["bmi", "body mass"], author="Pulit"),
+    # Yengo 2018 (ieu-b-40) is HapMap-imputed in OpenGWAS (~2.3M variants: 54% of our BP variants missing), so the
+    # dense UK Biobank BMI GWAS is pinned; the coverage check below would replace any sparse pick anyway.
+    dict(key="bmi", role="cluster_trait", pin="ukb-b-19953", all=["body mass index"],
+         exclude=["adjusted", "childhood", "change", "age"]),
+    # Barton 2021 (the only European match by name) covers 18% of our variants; fallback = GIANT WHRadjBMI
+    # (Pulit 2019 / Shungin 2015), accepted only if its trait or note says BMI-adjusted.
+    dict(key="whradjbmi", role="cluster_trait", all=["waist", "hip"], any=["bmi", "body mass"], author="Pulit",
+         european_only=True, fallback=dict(all=["waist", "hip"], author=["Pulit", "Shungin"], adjusted_any=["bmi", "body mass"])),
     dict(key="bodyfat", role="cluster_trait", all=["body fat percentage"], exclude=["arm", "leg", "trunk"]),
     dict(key="height", role="cluster_trait", all=["height"],
          exclude=["sitting", "standing", "child", "birth", "age 10", "comparative"], author="Yengo"),
@@ -77,7 +82,8 @@ STUDY_SPECS = [
     dict(key="hdl", role="cluster_trait", pin="ieu-b-109", all=["hdl cholesterol"]),
     dict(key="tg", role="cluster_trait", pin="ieu-b-111", all=["triglycerides"]),
     # glycaemic
-    # largest European genome-wide T2D GWAS by cases (an author preference forced Mahajan 2014 once 2018 was filtered out)
+    # largest European genome-wide T2D GWAS by cases. Studies without a case count (e.g. Loh 2018 BOLT-LMM, linear
+    # scale) rank below every study that reports cases, so a log-odds case-control GWAS (Xue 2018) wins.
     dict(key="t2d", role="cluster_trait", all=["type 2 diabetes"],
          exclude=["adjusted", "bmi", "family", "age", "neph", "retin", "neuro"], binary=True, european_only=True),
     dict(key="fg", role="cluster_trait", all=["fasting glucose"], exclude=["interaction", "adjusted for bmi"]),
@@ -128,6 +134,8 @@ STUDY_SPECS = [
 
 MVMR_KEYS = ["bmi", "ldl", "t2d"]  # extra instruments pulled for multivariable MR
 MIN_NSNP = 1_000_000                 # a study must cover at least this many variants to be used
+MAX_MISSING_PCT = 20.0               # a study missing more of our BP variants than this is replaced by the next candidate
+MAX_CANDIDATES = 4                   # candidates tried per trait before it is dropped
 MAX_ASSOC_PER_REQUEST = 64           # OpenGWAS API v4 limit: N(id) * N(variant) <= 64 per request
 
 
@@ -238,16 +246,50 @@ def _num(x):
         return 0.0
 
 
+def fallback_candidates(spec, catalog: pd.DataFrame) -> list[str]:
+    """Extra candidates for a trait whose name-matched studies are all unusable (see `fallback` in STUDY_SPECS)."""
+    fb = spec.get("fallback")
+    if not fb:
+        return []
+    text = catalog["trait"].fillna("").str.lower()
+    note = catalog["note"].fillna("").astype(str).str.lower() if "note" in catalog else pd.Series("", index=catalog.index)
+    m = pd.Series(True, index=catalog.index)
+    for w in fb.get("all", []):
+        m &= text.str.contains(w, regex=False)
+    if fb.get("adjusted_any"):
+        both = text + " " + note
+        m &= both.apply(lambda s: any(w in s for w in fb["adjusted_any"]))
+    au = catalog["author"].fillna("")
+    m &= au.apply(lambda a: any(x.lower() in a.lower() for x in fb.get("author", [""])))
+    pop = catalog["population"].fillna("").str.lower()
+    m &= pop.str.contains("european")
+    c = catalog[m].copy()
+    c["_size"] = c["sample_size"].apply(_num)
+    return c.sort_values("_size", ascending=False).index.tolist()
+
+
 def resolve(spec, catalog: pd.DataFrame):
+    """Best study for a spec plus the ranked candidate list (best first) used if a pick fails the coverage check."""
     pin = spec.get("pin")
+    sid, how, c = _search(spec, catalog)
     if pin and pin in catalog.index and _matches(spec, catalog.loc[pin, "trait"]):
-        return pin, "pinned", catalog.loc[[pin]]
+        rest = [x for x in c.index if x != pin]
+        return pin, "pinned", pd.concat([catalog.loc[[pin]], c.loc[rest]])
+    if sid is not None and pin:
+        how += f"; pin {pin} did not match"
+    return sid, how, c
+
+
+def _search(spec, catalog: pd.DataFrame):
     c = catalog[catalog["trait"].apply(lambda t: _matches(spec, t))]
     if spec.get("prefix"):
         c = c[c.index.str.startswith(spec["prefix"])]
     elif spec["role"] == "outcome":  # main outcomes come from consortium GWAS, not biobank-only releases
         c = c[~c.index.str.startswith(("finn-b-", "ukb-"))]
     if c.empty:
+        fb = fallback_candidates(spec, catalog)
+        if fb:
+            return fb[0], "fallback search", catalog.loc[fb]
         return None, "no match", c
     c = c.copy()
     pop = c["population"].fillna("").str.lower()
@@ -267,12 +309,18 @@ def resolve(spec, catalog: pd.DataFrame):
     for rank, a in enumerate(reversed(authors), 1):  # earlier in the list = higher score
         c.loc[c["author"].fillna("").str.contains(a, case=False, regex=False), "_author"] = rank
     c["_year"] = (c["year"].apply(_num) == spec.get("year", -1)).astype(int)
-    c["_size"] = c["ncase"].apply(_num) if spec.get("binary") else c["sample_size"].apply(_num)
-    c["_size"] = c["_size"].where(c["_size"] > 0, c["sample_size"].apply(_num))
-    c = c.sort_values(["_author", "_year", "_eur", "_size"], ascending=False)
+    if spec.get("binary"):
+        nc = c["ncase"].apply(_num)
+        c["_has_case"] = (nc > 0).astype(int)  # case-control GWAS (log-odds) before linear-model biobank releases
+        c["_size"] = nc.where(nc > 0, c["sample_size"].apply(_num))
+    else:
+        c["_has_case"] = 0
+        c["_size"] = c["sample_size"].apply(_num)
+    c = c.sort_values(["_author", "_year", "_eur", "_has_case", "_size"], ascending=False)
     how = "searched" + (f" (author match: {c['author'].iloc[0]})" if c["_author"].iloc[0] else "")
-    if pin:
-        how += f"; pin {pin} did not match"
+    fb = [x for x in fallback_candidates(spec, catalog) if x not in c.index]
+    if fb:
+        c = pd.concat([c, catalog.loc[fb]])
     return c.index[0], how, c
 
 
@@ -441,21 +489,52 @@ def _open_text(path: Path):
     return gzip.open(path, "rt") if magic == b"\x1f\x8b" else open(path, "rt")
 
 
-def extract_study(api, sid, wanted: set, keep_dir: Path | None, default_n=None, tries=3):
+def _searched_path(sid: str) -> Path:
+    return CACHE / f"extract_{sid}.searched.txt"
+
+
+def _load_extract(sid: str, legacy_searched: set):
+    """Cached rows for a study and the variants it was searched for (None if there is no usable checkpoint).
+    Checkpoints written before the .searched sidecar existed were searched for `legacy_searched`."""
+    done = CACHE / f"extract_{sid}.csv.gz"
+    if not done.exists():
+        return None, set()
+    try:
+        rows = pd.read_csv(done).to_dict("records")
+    except Exception:  # noqa: BLE001 - a broken checkpoint is redone
+        done.unlink(missing_ok=True)
+        return None, set()
+    sp = _searched_path(sid)
+    searched = set(sp.read_text().split()) if sp.exists() else set(legacy_searched)
+    searched |= {str(r["rsid"]) for r in rows}
+    return rows, searched
+
+
+def _save_extract(sid: str, rows: list, searched: set):
+    tmpc = CACHE / f".extract_{sid}.csv.gz.tmp"
+    pd.DataFrame(rows).to_csv(tmpc, index=False, compression="gzip")
+    tmps = CACHE / f".extract_{sid}.searched.tmp"
+    tmps.write_text("\n".join(sorted(searched)) + "\n")
+    os.replace(tmps, _searched_path(sid))
+    os.replace(tmpc, CACHE / f"extract_{sid}.csv.gz")
+
+
+def extract_study(api, sid, wanted: set, keep_dir: Path | None, default_n=None, tries=3, legacy_searched=frozenset()):
     """
-    One study -> rows for our variants, saved as data/raw/cache/extract_<sid>.csv.gz (the checkpoint).
-    keep_dir set (default): the full .vcf.gz is kept there and reused by later runs, so a dead runtime never
-    costs a second download; a half-finished download resumes. keep_dir None: stream and filter, nothing kept.
+    One study -> rows for our variants, checkpointed as data/raw/cache/extract_<sid>.csv.gz plus
+    extract_<sid>.searched.txt (the variants it was searched for). A later run that wants extra variants reads the
+    study again for those only. keep_dir set (default): the full .vcf.gz is kept there and reused, so neither a dead
+    runtime nor a new variant list costs a second download; a half-finished download resumes. keep_dir None: stream.
     """
     import gzip
     import io
     import zlib
-    done = CACHE / f"extract_{sid}.csv.gz"
-    if done.exists():
-        try:
-            return pd.read_csv(done).to_dict("records"), "extract already saved"
-        except Exception:  # noqa: BLE001 - a broken checkpoint is redone
-            done.unlink(missing_ok=True)
+    old_rows, searched = _load_extract(sid, set(legacy_searched))
+    todo = set(wanted) - searched if old_rows is not None else set(wanted)
+    if old_rows is not None and not todo:
+        return old_rows, "extract already saved"
+    old_rows = old_rows or []
+    extra = f" (+{len(todo)} new variants)" if old_rows else ""
     last = None
     for attempt in range(tries):
         t0 = time.time()
@@ -467,7 +546,7 @@ def extract_study(api, sid, wanted: set, keep_dir: Path | None, default_n=None, 
                 how = "file already on disk" if keep.exists() else download_file(api, sid, keep)
                 stage = "read"
                 with _open_text(keep) as fh:
-                    rows = parse_vcf_stream(fh, wanted, sid, default_n)
+                    rows = parse_vcf_stream(fh, todo, sid, default_n)
             else:
                 rows, how = None, "streamed"
                 for url in file_links(api, sid):
@@ -477,14 +556,13 @@ def extract_study(api, sid, wanted: set, keep_dir: Path | None, default_n=None, 
                             continue
                         r.raw.decode_content = True
                         with io.TextIOWrapper(gzip.GzipFile(fileobj=r.raw), encoding="utf-8") as fh:
-                            rows = parse_vcf_stream(fh, wanted, sid, default_n)
+                            rows = parse_vcf_stream(fh, todo, sid, default_n)
                     break
                 if rows is None:
                     raise IOError(last)
-            tmpc = CACHE / f".extract_{sid}.csv.gz.tmp"
-            pd.DataFrame(rows).to_csv(tmpc, index=False, compression="gzip")
-            os.replace(tmpc, done)
-            return rows, f"{how}, {(time.time() - t0) / 60:.1f} min"
+            allrows = old_rows + rows
+            _save_extract(sid, allrows, searched | todo)
+            return allrows, f"{how}{extra}, {(time.time() - t0) / 60:.1f} min"
         except (requests.RequestException, OSError, EOFError, ValueError, zlib.error) as e:
             last = f"{type(e).__name__} during {stage}: {e}"
             if stage == "read" and keep_dir is not None:  # a damaged file on disk: drop it, fetch it again
@@ -493,10 +571,13 @@ def extract_study(api, sid, wanted: set, keep_dir: Path | None, default_n=None, 
     return None, f"FAILED ({last})"
 
 
-def fetch_by_files(api, study_ids, snps, catalog, workers=3, keep_dir=None):
+def fetch_by_files(api, wanted_by_study: dict, core: set, catalog, workers=3, keep_dir=None, legacy_searched=frozenset()):
+    """
+    wanted_by_study: study id -> variants to extract. Coverage (missing_pct) is measured on `core`, the BP variants
+    that every study must cover. Returns {study: rows}, report rows, failed studies.
+    """
     from concurrent.futures import ThreadPoolExecutor, as_completed
-    wanted = set(snps)
-    long_rows, report, dead = [], [], []
+    out, report, dead = {}, [], []
 
     def one(sid):
         n = catalog.loc[sid, "sample_size"] if sid in catalog.index else None
@@ -504,24 +585,23 @@ def fetch_by_files(api, study_ids, snps, catalog, workers=3, keep_dir=None):
             n = float(n) if n is not None else None
         except (TypeError, ValueError):
             n = None
-        return sid, extract_study(api, sid, wanted, keep_dir, default_n=n)
+        return sid, extract_study(api, sid, wanted_by_study[sid], keep_dir, default_n=n, legacy_searched=legacy_searched)
 
+    ids = sorted(wanted_by_study)
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futs = [pool.submit(one, sid) for sid in study_ids]
+        futs = [pool.submit(one, sid) for sid in ids]
         for k, fut in enumerate(as_completed(futs), 1):
             sid, (rows, status) = fut.result()
             if rows is None:
                 dead.append(dict(study=sid, reason=status))
-                log(f"  [{k}/{len(study_ids)}] {sid}: {status}")
+                log(f"  [{k}/{len(ids)}] {sid}: {status}")
                 continue
-            found = len({r["rsid"] for r in rows})
-            report.append(dict(study=sid, found=found, wanted=len(wanted), missing_pct=round(100 * (1 - found / len(wanted)), 1),
-                               status=status))
-            log(f"  [{k}/{len(study_ids)}] {sid}: {found}/{len(wanted)} variants found "
-                f"({100 * (1 - found / len(wanted)):.1f}% missing), {status}")
-            long_rows.extend(rows)
-    pd.DataFrame(report).sort_values("missing_pct", ascending=False).to_csv(OUT / "file_extract_report.csv", index=False)
-    return long_rows, dead
+            found = len({str(r["rsid"]) for r in rows} & core)
+            miss = 100 * (1 - found / max(1, len(core)))
+            report.append(dict(study=sid, found=found, wanted=len(core), missing_pct=round(miss, 1), status=status))
+            log(f"  [{k}/{len(ids)}] {sid}: {found}/{len(core)} BP variants found ({miss:.1f}% missing), {status}")
+            out[sid] = rows
+    return out, report, dead
 
 
 def chunks(xs, n):
@@ -602,18 +682,24 @@ def main():
             catalog[col] = None
     log(f"{len(catalog)} studies in OpenGWAS")
 
-    man_rows, alt_rows = [], []
+    def manifest_row(spec, sid, how):
+        r = catalog.loc[sid]
+        return dict(key=spec["key"], role=spec["role"], id=sid, how=how, trait=r["trait"],
+                    author=r["author"], year=r["year"], population=r["population"],
+                    sample_size=r["sample_size"], ncase=r["ncase"], ncontrol=r["ncontrol"],
+                    consortium=r["consortium"], pmid=r["pmid"], unit=r["unit"], sd=r["sd"])
+
+    man_rows, alt_rows, cands_by_key = [], [], {}
+    spec_by_key = {sp["key"]: sp for sp in STUDY_SPECS}
     for spec in STUDY_SPECS:
         sid, how, cands = resolve(spec, catalog)
         if sid is None:
             log(f"  [{spec['key']}] NOT FOUND - skipped")
             man_rows.append(dict(key=spec["key"], role=spec["role"], id=None, how=how))
             continue
+        cands_by_key[spec["key"]] = list(dict.fromkeys(cands.index))
         r = catalog.loc[sid]
-        man_rows.append(dict(key=spec["key"], role=spec["role"], id=sid, how=how, trait=r["trait"],
-                             author=r["author"], year=r["year"], population=r["population"],
-                             sample_size=r["sample_size"], ncase=r["ncase"], ncontrol=r["ncontrol"],
-                             consortium=r["consortium"], pmid=r["pmid"], unit=r["unit"], sd=r["sd"]))
+        man_rows.append(manifest_row(spec, sid, how))
         for alt_id, a in cands.head(6).iterrows():
             alt_rows.append(dict(key=spec["key"], id=alt_id, trait=a["trait"], author=a["author"], year=a["year"],
                                  population=a["population"], sample_size=a["sample_size"], ncase=a["ncase"]))
@@ -625,38 +711,52 @@ def main():
     if "sbp" not in ids:
         sys.exit("Could not resolve the SBP study; stopping.")
 
+    # variants the checkpoints from before the .searched sidecar were searched for (= the previous instruments.csv)
+    legacy = set()
+    if (OUT / "instruments.csv").exists():
+        try:
+            legacy = set(pd.read_csv(OUT / "instruments.csv")["rsid"].astype(str))
+        except Exception:  # noqa: BLE001
+            legacy = set()
+
     # 2. variant list
-    inst_rows = []
-    th = api.call("tophits", dict(id=[ids["sbp"]], pval=5e-8, preclumped=1, clump=1, r2=0.001, kb=10000, pop="EUR"),
-                  cache_key=f"tophits_{ids['sbp']}_strict")
-    for h in th:
-        inst_rows.append(dict(rsid=h["rsid"], source="sbp_tophits_r2_0.001"))
-    try:  # server-side clumping of all SBP hits at a relaxed threshold; can be slow or refused
-        th2 = api.call("tophits", dict(id=[ids["sbp"]], pval=5e-8, preclumped=0, clump=1, r2=0.05, kb=500, pop="EUR"),
-                       cache_key=f"tophits_{ids['sbp']}_r2_0.05", tries=3)
-    except Exception as e:  # noqa: BLE001
-        log(f"  relaxed SBP clumping failed ({e}); continuing with strict hits + Keaton list")
-        th2 = []
-    for h in th2:
-        inst_rows.append(dict(rsid=h["rsid"], source="sbp_tophits_r2_0.05"))
-    log(f"SBP tophits: {len(th)} (r2<0.001), {len(th2)} (r2<0.05, 500kb)")
-    if args.keaton:
-        for rs in keaton_rsids(args.keaton):
-            inst_rows.append(dict(rsid=rs, source="keaton2024"))
-    for k in MVMR_KEYS:
-        if k in ids:
-            t = api.call("tophits", dict(id=[ids[k]], pval=5e-8, preclumped=1, clump=1, r2=0.001, kb=10000, pop="EUR"),
-                         cache_key=f"tophits_{ids[k]}_strict")
-            for h in t:
-                inst_rows.append(dict(rsid=h["rsid"], source=f"mvmr_{k}"))
-            log(f"MVMR instruments {k}: {len(t)}")
-    inst = pd.DataFrame(inst_rows).drop_duplicates()
-    snps = sorted({str(x).strip() for x in inst["rsid"].dropna()})
-    bad = [x for x in snps if not re.match(r"^(rs\d+|\d{1,2}:\d+)$", x)]
-    if bad:
-        log(f"  dropping {len(bad)} malformed variant ids, e.g. {bad[:5]}")
-    snps = [x for x in snps if x not in set(bad)]
-    log(f"{len(snps)} unique variants to look up")
+    def variant_list(ids):
+        inst_rows = []
+        th = api.call("tophits", dict(id=[ids["sbp"]], pval=5e-8, preclumped=1, clump=1, r2=0.001, kb=10000, pop="EUR"),
+                      cache_key=f"tophits_{ids['sbp']}_strict")
+        for h in th:
+            inst_rows.append(dict(rsid=h["rsid"], source="sbp_tophits_r2_0.001"))
+        try:  # server-side clumping of all SBP hits at a relaxed threshold; can be slow or refused
+            th2 = api.call("tophits", dict(id=[ids["sbp"]], pval=5e-8, preclumped=0, clump=1, r2=0.05, kb=500, pop="EUR"),
+                           cache_key=f"tophits_{ids['sbp']}_r2_0.05", tries=3)
+        except Exception as e:  # noqa: BLE001
+            log(f"  relaxed SBP clumping failed ({e}); continuing with strict hits + Keaton list")
+            th2 = []
+        for h in th2:
+            inst_rows.append(dict(rsid=h["rsid"], source="sbp_tophits_r2_0.05"))
+        log(f"SBP tophits: {len(th)} (r2<0.001), {len(th2)} (r2<0.05, 500kb)")
+        if args.keaton:
+            for rs in keaton_rsids(args.keaton):
+                inst_rows.append(dict(rsid=rs, source="keaton2024"))
+        for k in MVMR_KEYS:
+            if k in ids:
+                tk = api.call("tophits", dict(id=[ids[k]], pval=5e-8, preclumped=1, clump=1, r2=0.001, kb=10000, pop="EUR"),
+                              cache_key=f"tophits_{ids[k]}_strict")
+                for h in tk:
+                    inst_rows.append(dict(rsid=h["rsid"], source=f"mvmr_{k}"))
+                log(f"MVMR instruments {k} ({ids[k]}): {len(tk)}")
+        inst = pd.DataFrame(inst_rows).drop_duplicates()
+        inst["rsid"] = inst["rsid"].astype(str).str.strip()
+        snps = sorted(set(inst["rsid"].dropna()))
+        bad = [x for x in snps if not re.match(r"^(rs\d+|\d{1,2}:\d+)$", x)]
+        if bad:
+            log(f"  dropping {len(bad)} malformed variant ids, e.g. {bad[:5]}")
+        snps = [x for x in snps if x not in set(bad)]
+        core = set(inst.loc[~inst["source"].str.startswith("mvmr"), "rsid"]) & set(snps)
+        log(f"{len(snps)} unique variants to look up ({len(core)} BP variants, {len(snps) - len(core)} MVMR-only)")
+        return inst, snps, core, th
+
+    inst, snps, core, th = variant_list(ids)
 
     # 3. associations for every variant in every study
     long_rows, failed, dead_studies = [], [], []
@@ -664,10 +764,56 @@ def main():
     probe = th[0]["rsid"] if th else snps[0]  # an SBP lead variant: valid in any study
     if args.source == "files":
         keep_dir = None if args.no_keep_files else (args.keep_files or OUT / "files")
-        log(f"Fetching {len(study_ids)} study files, {args.workers} at a time; "
+        log(f"Fetching study files, {args.workers} at a time; "
             + (f"full files kept in {keep_dir}" if keep_dir else "streamed, not kept")
-            + f"; one extract per study in {CACHE}")
-        long_rows, dead_studies = fetch_by_files(api, study_ids, snps, catalog, args.workers, keep_dir)
+            + f"; one extract per study in {CACHE}. A study missing > {MAX_MISSING_PCT:g}% of the BP variants "
+              f"is replaced by the next candidate (up to {MAX_CANDIDATES} per trait).")
+        # MVMR-only variants are needed only where MVMR uses them: SBP, the mediators, and the outcomes
+        extra_roles = {"exposure", "outcome", "replication"}
+        tried = {k: [sid] for k, sid in ids.items()}
+        results, reports = {}, {}
+        for rnd in range(1, MAX_CANDIDATES + 2):
+            need_all = {ids[k] for k in ids if spec_by_key[k]["role"] in extra_roles or k in MVMR_KEYS}
+            wanted = {sid: (set(snps) if sid in need_all else set(core)) for sid in set(ids.values())}
+            log(f"round {rnd}: {len(wanted)} studies")
+            got, rep, dead = fetch_by_files(api, wanted, core, catalog, args.workers, keep_dir, legacy)
+            results.update(got)
+            for r in rep:
+                reports[r["study"]] = r
+            dead_studies += [d for d in dead if d["study"] not in {x["study"] for x in dead_studies}]
+            swapped = []
+            for k in list(ids):
+                sid = ids[k]
+                r = reports.get(sid)
+                if k == "sbp" or (r is not None and r["missing_pct"] <= MAX_MISSING_PCT):
+                    continue
+                why = "download failed" if r is None else f"{r['missing_pct']:g}% of BP variants missing"
+                nxt = next((x for x in cands_by_key.get(k, []) if x not in tried[k]), None)
+                row = manifest.index[manifest["key"] == k][0]
+                if nxt is None or len(tried[k]) >= MAX_CANDIDATES:
+                    log(f"  [{k}] {sid}: {why}; no usable alternative - trait DROPPED")
+                    manifest.loc[row, "how"] = f"{manifest.loc[row, 'how']} | DROPPED: {sid} {why}"
+                    manifest.loc[row, "id"] = None
+                    ids.pop(k)
+                    continue
+                prev_how = manifest.loc[row, "how"]
+                tried[k].append(nxt)
+                ids[k] = nxt
+                for col, v in manifest_row(spec_by_key[k], nxt, f"replaced {sid} ({why}); was: {prev_how}").items():
+                    manifest.loc[row, col] = v
+                c = catalog.loc[nxt]
+                log(f"  [{k}] {sid}: {why} -> trying {nxt} {c['trait']} | {c['author']} {c['year']} | n={c['sample_size']}")
+                swapped.append(k)
+            manifest.to_csv(OUT / "manifest.csv", index=False)
+            if not swapped:
+                break
+            if any(k in MVMR_KEYS for k in swapped):  # new mediator study -> its own instruments
+                inst, snps, core, th = variant_list(ids)
+        used = set(ids.values())
+        pd.DataFrame([dict(r, used=r["study"] in used) for r in reports.values()]).sort_values(
+            ["used", "missing_pct"], ascending=[False, False]).to_csv(OUT / "file_extract_report.csv", index=False)
+        for sid in sorted(used):
+            long_rows.extend(results.get(sid, []))
         study_ids = []  # skip the per-variant API loop below
     for i, sid in enumerate(study_ids, 1):
         n_before, n_failed = len(long_rows), len(failed)

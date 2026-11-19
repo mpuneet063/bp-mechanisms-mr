@@ -102,3 +102,11 @@ def conditional_f(BX: np.ndarray, SX: np.ndarray, names: list[str]) -> pd.Series
         Q = np.sum(resid ** 2 / var)
         out[names[j]] = Q / (BX.shape[0] - BX.shape[1] + 1)
     return pd.Series(out, name="conditional_F")
+
+
+def mr_clusters(gate: pd.Series, sizes: pd.Series, min_snps: int):
+    """Clusters that passed the stability gate; if none did, every cluster with enough variants, flagged exploratory."""
+    ok = [int(c[1:]) for c, g in gate.items() if g]
+    if ok:
+        return ok, False
+    return [int(c[1:]) for c, n in sizes.items() if n >= min_snps], True

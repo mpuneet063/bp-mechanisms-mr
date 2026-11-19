@@ -9,6 +9,10 @@ from pathlib import Path
 MAIN_OUTCOMES = ["stroke_any", "stroke_is", "stroke_las", "stroke_ces", "stroke_svs", "ich", "cad"]
 REPLICATION = ["fg_stroke", "fg_is", "fg_chd"]
 MVMR_MEDIATORS = ["bmi", "ldl", "t2d"]
+# partitions, primary first. k-means is primary: on the real BP matrix Ward assignments did not survive the variant
+# bootstrap (mean Jaccard 0.3-0.5 at every K) while k-means clusters did; Ward (Pascat 2026) and bNMF (Udler 2018)
+# are kept as sensitivity analyses.
+PARTITIONS = ["kmeans", "hclust", "bnmf"]
 OUTCOME_LABELS = {
     "stroke_any": "Any stroke", "stroke_is": "Ischaemic stroke", "stroke_las": "Large-artery stroke",
     "stroke_ces": "Cardioembolic stroke", "stroke_svs": "Small-vessel stroke", "ich": "Intracerebral haemorrhage",
@@ -32,8 +36,11 @@ class Settings:
     bnmf_phi: float = 0.5            # bNMF regulariser (Udler's phi); scan reported in 02_cluster/bnmf_phi_scan.csv
     bnmf_phi_scan: list = field(default_factory=lambda: [0.25, 0.5, 1.0])
     bnmf_phi_scan_runs: int = 20
-    primary: str = "hclust"          # partition used for the headline MR: "hclust" (Pascat 2026) or "bnmf"
-    k_override: int = 0              # 0 = K from bNMF (modal K across runs)
+    primary: str = "kmeans"          # partition used for the headline MR: "kmeans", "hclust" (Pascat 2026) or "bnmf"
+    k_override: int = 0              # 0 = K chosen by bootstrap stability of k-means over k_scan (bNMF keeps its own K)
+    k_scan: list = field(default_factory=lambda: [3, 4, 5, 6, 7, 8])
+    boot_k_select: int = 50          # bootstrap replicates per K when choosing K
+    kmeans_n_init: int = 20
     bnmf_runs: int = 100
     bnmf_k_init: int = 20
     bnmf_k0: int = 10
@@ -64,7 +71,7 @@ class Settings:
         return p
 
 
-FAST = dict(bnmf_runs=20, bnmf_phi_scan_runs=5, boot_variant=60, boot_noise=40, boot_k_scan=20, bnmf_noise_runs=4, wm_boot=200,
+FAST = dict(boot_k_select=10, bnmf_runs=20, bnmf_phi_scan_runs=5, boot_variant=60, boot_noise=40, boot_k_scan=20, bnmf_noise_runs=4, wm_boot=200,
             presso_sim=300, perm_B=200, pair_B=200)
 
 
@@ -73,7 +80,7 @@ def parse(description: str) -> Settings:
     ap.add_argument("--raw", default=None, help="folder with manifest.csv, associations.csv.gz, instruments.csv")
     ap.add_argument("--out", default=None, help="results folder")
     ap.add_argument("--fast", action="store_true", help="small bootstrap/run counts for a quick end-to-end check")
-    ap.add_argument("--primary", choices=["hclust", "bnmf"], default=None)
+    ap.add_argument("--primary", choices=PARTITIONS, default=None)
     ap.add_argument("--k", type=int, default=None, help="force the number of clusters")
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--profile", choices=["per_sbp", "raw_no_sbp", "raw"], default=None)

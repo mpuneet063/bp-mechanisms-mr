@@ -22,8 +22,9 @@ LOG="$OUT/run.log"
 echo "run started $(date '+%F %T')  raw=$RAW out=$OUT extra=${EXTRA[*]-}" | tee "$LOG"
 
 # Resume: a step that finished with the same inputs and settings is skipped (its outputs are on disk).
-# A finished step leaves <out>/<step>/.done; --force reruns everything; changing data or flags reruns from there.
-SIG="raw=$RAW|args=${EXTRA[*]-}|data=$(cat "$RAW/manifest.csv" "$RAW/instruments.csv" 2>/dev/null | md5sum | cut -c1-12)"
+# A finished step leaves <out>/<step>/.done; --force reruns everything; changing data, flags or code reruns from there.
+# the signature covers the data, the flags and the analysis code, so an updated script reruns its step and the rest
+SIG="raw=$RAW|args=${EXTRA[*]-}|data=$(cat "$RAW/manifest.csv" "$RAW/instruments.csv" 2>/dev/null | md5sum | cut -c1-12)|code=$(cat scripts/0[1-7]_*.py bpmr/*.py | md5sum | cut -c1-12)"
 RERUN=$FORCE
 for step in 01_prepare 02_cluster 03_stability 04_mr 05_compare 06_mvmr 07_report; do
   MARK="$OUT/$step/.done"

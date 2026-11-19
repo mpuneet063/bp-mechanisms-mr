@@ -1,4 +1,4 @@
-"""Clustering: Ward hierarchical clustering (Pascat et al. 2026) and Bayesian NMF with ARD (Udler et al. 2018)."""
+"""Clustering: k-means (primary), Ward hierarchical (Pascat et al. 2026) and Bayesian NMF with ARD (Udler et al. 2018)."""
 from __future__ import annotations
 
 from collections import Counter
@@ -25,6 +25,29 @@ def hclust_input(z: pd.DataFrame, clip_sd: float | None = 2.0) -> np.ndarray:
 def ward(x: np.ndarray, k: int) -> np.ndarray:
     lab = fcluster(linkage(x, method="ward", metric="euclidean"), t=k, criterion="maxclust")
     return lab - 1
+
+
+def kmeans(x: np.ndarray, k: int, n_init: int = 20, seed: int = 0) -> np.ndarray:
+    """k-means with many restarts and a fixed seed, so a given matrix always gives the same partition."""
+    from sklearn.cluster import KMeans
+    return KMeans(n_clusters=k, n_init=n_init, random_state=seed).fit_predict(x)
+
+
+def choose_k(scan: pd.DataFrame, jaccard_min: float, jaccard_stable: float = 0.75) -> tuple[int, str]:
+    """
+    Most resolution the data support: the largest K whose every cluster is stable (bootstrap Jaccard >=
+    `jaccard_stable`); failing that, the largest K whose every cluster passes the MR gate (`jaccard_min`);
+    failing that, the K with the highest mean Jaccard. (In simulation, "highest mean" merged two planted
+    mechanisms: K = 4 at 0.98 vs the true K = 6 at 0.97.)
+    """
+    for thr, label in [(jaccard_stable, "stable"), (jaccard_min, "gate")]:
+        ok = scan[scan["min_cluster_jaccard"] >= thr]
+        if len(ok):
+            r = ok.sort_values("k").iloc[-1]
+            return int(r["k"]), (f"largest K with every cluster bootstrap Jaccard >= {thr:g} ({label}); "
+                                 f"weakest cluster {r['min_cluster_jaccard']:.2f}, mean {r['mean_jaccard']:.2f}")
+    r = scan.sort_values(["mean_jaccard", "k"], ascending=[False, True]).iloc[0]
+    return int(r["k"]), f"no K had every cluster >= {jaccard_min:g}; highest mean Jaccard ({r['mean_jaccard']:.2f})"
 
 
 def silhouette_by_k(x: np.ndarray, ks=range(2, 11)) -> pd.Series:

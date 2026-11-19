@@ -26,6 +26,14 @@ plt.rcParams.update({"font.size": 9, "axes.edgecolor": MUTED, "axes.labelcolor":
 
 from matplotlib.ticker import FixedLocator, FuncFormatter, MaxNLocator, NullLocator  # noqa: E402
 
+def read_csv_safe(p, **kw) -> pd.DataFrame:
+    """Empty DataFrame for a missing or empty CSV (a step can legitimately produce no rows)."""
+    try:
+        return pd.read_csv(p, **kw)
+    except (FileNotFoundError, pd.errors.EmptyDataError):
+        return pd.DataFrame()
+
+
 OR_TICKS = [0.25, 0.5, 0.67, 0.8, 1, 1.25, 1.5, 2, 3, 4, 6, 8]
 
 
@@ -67,9 +75,11 @@ def fig_heatmap(s, out, part, meta):
 
 
 def fig_stability(s, out, meta):
-    st = pd.read_csv(s.outp / "03_stability" / "hclust_stability_summary.csv")
-    J = pd.read_csv(s.outp / "03_stability" / "hclust_bootstrap_jaccard.csv")
-    kscan = pd.read_csv(s.outp / "03_stability" / "hclust_stability_by_k.csv")
+    part = s.primary if s.primary != "bnmf" else "kmeans"
+    st = pd.read_csv(s.outp / "03_stability" / f"{part}_stability_summary.csv")
+    J = pd.read_csv(s.outp / "03_stability" / f"{part}_bootstrap_jaccard.csv")
+    kscan = pd.read_csv(s.outp / "03_stability" / f"{part}_stability_by_k.csv")
+    kscan_ward = read_csv_safe(s.outp / "03_stability" / "hclust_stability_by_k.csv")
     kc = pd.read_csv(s.outp / "02_cluster" / "bnmf_K_counts.csv")
     fig, axes = plt.subplots(1, 3, figsize=(12, 3.6), gridspec_kw=dict(width_ratios=[1.3, 1, 1]))
     ax = axes[0]
@@ -86,16 +96,19 @@ def fig_stability(s, out, meta):
     ax.set_yticks(y, [f"{r.cluster} (n={r.n_variants})" for r in st.itertuples()])
     ax.set_xlim(0, 1.02)
     ax.set_xlabel("bootstrap Jaccard (mean, 5th-95th pct)")
-    ax.set_title("A  Per-cluster stability (Ward)", loc="left", color=INK)
+    ax.set_title(f"A  Per-cluster stability ({part}, K = {meta['k']})", loc="left", color=INK)
     ax = axes[1]
     ax.plot(kscan["k"], kscan["mean_jaccard"], "-o", color=BLUE, lw=2, ms=6, label="mean over clusters")
     ax.plot(kscan["k"], kscan["min_cluster_jaccard"], "-o", color=MUTED, lw=2, ms=6, label="least stable cluster")
+    if part != "hclust" and not kscan_ward.empty:
+        ax.plot(kscan_ward["k"], kscan_ward["mean_jaccard"], "--", color=RED, lw=1.5, label="Ward, mean")
+    ax.axhline(s.jaccard_min, color=INK2, lw=1, ls=":")
     ax.axvline(meta["k"], color=INK2, lw=1, ls=":")
     ax.set_xlabel("number of clusters K")
     ax.set_ylabel("bootstrap Jaccard")
     ax.set_ylim(0, 1.02)
     ax.legend(frameon=False, fontsize=8, loc="lower left")
-    ax.set_title("B  Stability across K", loc="left", color=INK)
+    ax.set_title(f"B  Stability across K ({part})", loc="left", color=INK)
     ax = axes[2]
     ax.bar(kc["K"], kc["runs"], color=BLUE, width=0.6)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -105,8 +118,8 @@ def fig_stability(s, out, meta):
     fig.tight_layout()
     save(fig, out, "fig2_stability")
 
-    co = np.load(s.outp / "03_stability" / "hclust_noise_coassign.npy")
-    lab = pd.read_csv(s.outp / "02_cluster" / "labels.csv", index_col=0)["hclust"].to_numpy()
+    co = np.load(s.outp / "03_stability" / f"{part}_noise_coassign.npy")
+    lab = pd.read_csv(s.outp / "02_cluster" / "labels.csv", index_col=0)[part].to_numpy()
     o = np.argsort(lab, kind="stable")
     fig, ax = plt.subplots(figsize=(4.8, 4.2))
     im = ax.imshow(co[np.ix_(o, o)], cmap=SEQ, vmin=0, vmax=1, interpolation="nearest")
@@ -120,13 +133,13 @@ def fig_stability(s, out, meta):
     cb = fig.colorbar(im, ax=ax, shrink=0.8)
     cb.set_label("P(same cluster) under GWAS sampling noise")
     cb.outline.set_visible(False)
-    ax.set_title("Co-assignment matrix, variants ordered by cluster", loc="left", color=INK, fontsize=9)
+    ax.set_title(f"Co-assignment matrix ({part}), variants ordered by cluster", loc="left", color=INK, fontsize=9)
     save(fig, out, "fig2b_coassignment")
 
 
 def fig_forest(s, out, part, info, meta):
     mr = pd.read_csv(s.outp / "04_mr" / "mr_results.csv")
-    d = mr[(mr["method"] == "IVW") & (mr["partition"].isin([part, "hclust"]))]
+    d = mr[(mr["method"] == "IVW") & (mr["partition"].isin([part, config.PARTITIONS[0]]))]
     d = d[(d["partition"] == part) | (d["cluster"] == "all")]
     outs = [o for o in config.MAIN_OUTCOMES if o in d["outcome"].unique()]
     clusters = ["all"] + sorted([c for c in d["cluster"].unique() if c != "all"], key=lambda c: int(c[1:]))
@@ -170,7 +183,9 @@ def fig_mvmr(s, out):
     p = s.outp / "06_mvmr" / "univariable_vs_mvmr.csv"
     if not p.exists():
         return
-    d = pd.read_csv(p)
+    d = read_csv_safe(p)
+    if d.empty:
+        return
     d = d[d["outcome"].isin(["cad", "stroke_svs", "stroke_las", "stroke_any"])]
     if d.empty:
         return
@@ -202,15 +217,20 @@ def fig_mvmr(s, out):
 
 
 def summary(s, out, info, meta):
-    st = pd.read_csv(s.outp / "03_stability" / "hclust_stability_summary.csv")
-    mr = pd.read_csv(s.outp / "04_mr" / "mr_results.csv")
-    het = pd.read_csv(s.outp / "05_compare" / "between_cluster_heterogeneity.csv")
-    pw = pd.read_csv(s.outp / "05_compare" / "pairwise_contrasts.csv")
     part = s.primary
+    st = pd.read_csv(s.outp / "03_stability" / f"{part}_stability_summary.csv")
+    mr = pd.read_csv(s.outp / "04_mr" / "mr_results.csv")
+    het = read_csv_safe(s.outp / "05_compare" / "between_cluster_heterogeneity.csv")
+    pw = read_csv_safe(s.outp / "05_compare" / "pairwise_contrasts.csv")
+    mv = read_csv_safe(s.outp / "06_mvmr" / "univariable_vs_mvmr.csv")
+    ari_txt = ", ".join(f"{a.replace('_vs_', ' vs ')} {v:.2f}" for a, v in meta["ari"].items()) if isinstance(meta["ari"], dict) else f"{meta['ari']:.2f}"
+    stable_ = st[st["goes_to_mr"]]
     L = [f"# Results summary ({'SIMULATED DATA' if 'sim' in s.raw else 'real data'})", "",
          f"Exposure scaling: {info['label']}. Clustering variants: {info['n_cluster_variants']}; "
          f"MR instruments: {info['n_mr_instruments']}. Traits: {', '.join(info['traits'])}.", "",
-         f"## Clusters (K = {meta['k']}, bNMF K counts {meta['k_counts']}; hclust vs bNMF ARI = {meta['ari']:.2f})", "",
+         f"## Clusters ({part}, K = {meta['k']}: {meta.get('k_reason', '')})", "",
+         f"bNMF K counts {meta['k_counts']}. Agreement between methods (ARI): {ari_txt}. "
+         f"{len(stable_)} of {len(st)} clusters pass the stability gate (Jaccard >= {s.jaccard_min}).", "",
          "| cluster | n | top traits | bootstrap Jaccard | noise keep prob | stability | to MR |", "|---|---|---|---|---|---|---|"]
     for r in st.itertuples():
         L.append(f"| {r.cluster} | {r.n_variants} | {r.name} | {r.jaccard_mean:.2f} | {r.noise_keep_prob:.2f} | {r.stability} | {'yes' if r.goes_to_mr else 'no'} |")
@@ -225,10 +245,14 @@ def summary(s, out, info, meta):
             r = iv[(iv["cluster"] == c) & (iv["outcome"] == o)]
             cells.append("" if r.empty else f"{r['OR'].iloc[0]:.2f} ({r['OR_lo'].iloc[0]:.2f}-{r['OR_hi'].iloc[0]:.2f})")
         L.append(f"| {c} | " + " | ".join(cells) + " |")
-    L += ["", "## Do clusters differ? (stable clusters only)", "", "| outcome | Q_between | df | p (chi2) | p (permutation) |", "|---|---|---|---|---|"]
-    for r in het[het["partition"] == part].itertuples():
+    hp = het[het["partition"] == part] if not het.empty else het
+    expl = (not hp.empty) and bool(hp["exploratory"].any()) if "exploratory" in hp else False
+    L += ["", "## Do clusters differ? " + ("(EXPLORATORY: no cluster passed the stability gate)" if expl else "(stable clusters only)"),
+          "", "| outcome | Q_between | df | p (chi2) | p (permutation) |", "|---|---|---|---|---|"]
+    for r in hp.itertuples():
         L.append(f"| {config.OUTCOME_LABELS.get(r.outcome, r.outcome)} | {r.Q_between:.1f} | {r.Q_df} | {r.Q_p:.2g} | {r.perm_p:.3g} |")
-    top = pw[(pw["partition"] == part) & pw["ratio_interpretable"]].sort_values("diff_p").head(8)
+    top = (pw[(pw["partition"] == part) & pw["ratio_interpretable"].astype(bool)].sort_values("diff_p").head(8)
+           if not pw.empty else pw)
     L += ["", "## Strongest pairwise contrasts", ""]
     for r in top.itertuples():
         L.append(f"- {config.OUTCOME_LABELS.get(r.outcome, r.outcome)}: c{r.cluster_a} ({r.name_a}) vs c{r.cluster_b} ({r.name_b}): "
@@ -238,6 +262,12 @@ def summary(s, out, info, meta):
     L += ["", "## Pleiotropy checks", "",
           f"- MR-Egger intercept p < 0.05 in {int((egg['int_p'] < 0.05).sum())} of {len(egg)} cluster x outcome analyses.",
           f"- MR-PRESSO global test p < 0.05 in {int((mr.loc[mr['method'].str.startswith('MR-PRESSO') & (mr['partition'] == part), 'global_p'] < 0.05).sum())} analyses."]
+    if not mv.empty:
+        L += ["", "## Univariable vs multivariable MR (adjusted for BMI, LDL, T2D)", "",
+              "| cluster | outcome | OR univariable | OR MVMR (95% CI) |", "|---|---|---|---|"]
+        for r in mv.itertuples():
+            L.append(f"| {r.cluster} {r.name} | {config.OUTCOME_LABELS.get(r.outcome, r.outcome)} | {r.OR_univariable:.2f} | "
+                     f"{r.OR_mvmr:.2f} ({r.OR_mvmr_lo:.2f}-{r.OR_mvmr_hi:.2f}) |")
     (out / "summary.md").write_text("\n".join(L) + "\n")
     print("\n".join(L))
 
@@ -247,7 +277,7 @@ def main():
     out = s.step("07_report")
     info = json.loads((s.outp / "01_prepare" / "info.json").read_text())
     meta = json.loads((s.outp / "02_cluster" / "clusters.json").read_text())
-    for part in ["hclust", "bnmf"]:
+    for part in config.PARTITIONS:
         fig_heatmap(s, out, part, meta)
         fig_forest(s, out, part, info, meta)
     fig_stability(s, out, meta)

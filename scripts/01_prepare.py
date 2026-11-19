@@ -13,7 +13,23 @@ from bpmr.data import harmonise, load_raw, wide  # noqa: E402
 from bpmr.matrix import build_matrix, profile_matrix  # noqa: E402
 
 
-def exposure_scale(manifest: pd.DataFrame):
+SBP_SD_MMHG = 19.0  # population SD of SBP in UK Biobank-scale cohorts, used only if effects are SD-scaled
+
+
+def infer_sbp_unit(bx: pd.Series, sx: pd.Series) -> str:
+    """
+    OpenGWAS leaves the unit blank for several BP studies (Evangelou 2018 included).
+    Genome-wide significant SBP effects are ~0.2-1 mmHg per allele, i.e. ~0.01-0.05 SD (SD ~19 mmHg),
+    so the median |beta| of the significant variants separates the two scales by an order of magnitude.
+    """
+    sig = (bx / sx).abs() > 5.45  # p < 5e-8
+    med = bx[sig].abs().median() if sig.sum() >= 20 else np.nan
+    if not np.isfinite(med):
+        return "unknown"
+    return "mmHg" if med > 0.08 else "SD"
+
+
+def exposure_scale(manifest: pd.DataFrame, bx: pd.Series | None = None, sx: pd.Series | None = None):
     row = manifest[manifest["key"] == "sbp"].iloc[0]
     unit = str(row.get("unit", "")).lower()
     sd = pd.to_numeric(row.get("sd", np.nan), errors="coerce")
@@ -21,6 +37,14 @@ def exposure_scale(manifest: pd.DataFrame):
         return 10.0, "per 10 mmHg higher SBP"
     if np.isfinite(sd) and sd > 0:
         return 10.0 / sd, f"per 10 mmHg higher SBP (converted from SD units, SD = {sd:g} mmHg)"
+    if bx is not None and unit in ("", "nan", "none", "na"):
+        guess = infer_sbp_unit(bx, sx)
+        med = bx[(bx / sx).abs() > 5.45].abs().median()
+        if guess == "mmHg":
+            return 10.0, f"per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = {med:.3f})"
+        if guess == "SD":
+            return 10.0 / SBP_SD_MMHG, (f"per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred SD units from "
+                                        f"median |beta| = {med:.3f}; assumed SD = {SBP_SD_MMHG:g} mmHg)")
     return 1.0, f"per unit of the SBP GWAS ({row.get('unit', 'unknown unit')})"
 
 
@@ -70,7 +94,7 @@ def main():
     var.to_csv(out / "variants.csv")
     log.append(f"MR instruments (in clustering set, r2<0.001, F>={s.f_min:g}): {int(var['mr_instrument'].sum())}")
 
-    scale, label = exposure_scale(raw.manifest)
+    scale, label = exposure_scale(raw.manifest, var["bx"], var["sx"])
     info = dict(scale=scale, label=label, n_cluster_variants=int(len(zm.z)), traits=list(zm.z.columns),
                 n_mr_instruments=int(var["mr_instrument"].sum()))
     (out / "info.json").write_text(json.dumps(info, indent=2))

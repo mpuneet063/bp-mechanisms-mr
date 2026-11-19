@@ -116,3 +116,79 @@ def test_t2d_takes_largest_european_study():
     ]).set_index("id")
     sp = next(s for s in fetch.STUDY_SPECS if s["key"] == "t2d")
     assert fetch.resolve(sp, cat)[0] == "xue"
+
+
+def test_t2d_case_control_beats_linear_biobank_release():
+    # 2026-11-19: Loh 2018 (BOLT-LMM, no case count, linear scale) outranked Xue 2018 because its total N
+    # was compared with Xue's case count
+    cat = pd.DataFrame([
+        dict(id="loh", trait="Type 2 diabetes", author="Loh PR", year=2018, population="European", sample_size=468298, ncase=None, nsnp=1.1e7),
+        dict(id="xue", trait="Type 2 diabetes", author="Xue A", year=2018, population="European", sample_size=655666, ncase=61714, nsnp=5e6),
+        dict(id="sak", trait="Type 2 diabetes", author="Sakaue S", year=2021, population="European", sample_size=490089, ncase=38841, nsnp=1.3e7),
+    ]).set_index("id")
+    sp = next(s for s in fetch.STUDY_SPECS if s["key"] == "t2d")
+    sid, _, cands = fetch.resolve(sp, cat)
+    assert sid == "xue" and list(cands.index) == ["xue", "sak", "loh"]
+
+
+def test_pinned_study_keeps_ranked_candidates_for_fallback():
+    cat = pd.DataFrame([
+        dict(id="ieu-b-40", trait="body mass index", author="Yengo, L", year=2018, population="European", sample_size=681275, ncase=None, nsnp=2.3e6),
+        dict(id="ukb-b-19953", trait="Body mass index (BMI)", author="Ben Elsworth", year=2018, population="European", sample_size=461460, ncase=None, nsnp=9.8e6),
+    ]).set_index("id")
+    sp = next(s for s in fetch.STUDY_SPECS if s["key"] == "bmi")
+    sid, how, cands = fetch.resolve(sp, cat)
+    assert (sid, how) == ("ukb-b-19953", "pinned")
+    assert list(cands.index) == ["ukb-b-19953", "ieu-b-40"]
+
+
+def test_whr_fallback_needs_bmi_adjustment_in_trait_or_note():
+    cat = pd.DataFrame([
+        dict(id="barton", trait="Waist-to-hip ratio adjusted for BMI", author="Barton AR", year=2021, population="European", sample_size=458349, ncase=None, nsnp=2e6, note=""),
+        dict(id="giant_unadj", trait="Waist-to-hip ratio", author="Shungin D", year=2015, population="European", sample_size=212244, ncase=None, nsnp=2.5e6, note=""),
+        dict(id="giant_adj", trait="Waist-to-hip ratio", author="Shungin D", year=2015, population="European", sample_size=210088, ncase=None, nsnp=2.5e6, note="Adjusted for BMI"),
+        dict(id="mixed", trait="Waist-to-hip ratio adjusted for BMI", author="Fernandez-Rhodes L", year=2022, population="Mixed", sample_size=205581, ncase=None, nsnp=8e6, note=""),
+    ]).set_index("id")
+    sp = next(s for s in fetch.STUDY_SPECS if s["key"] == "whradjbmi")
+    sid, _, cands = fetch.resolve(sp, cat)
+    assert sid == "barton" and list(cands.index) == ["barton", "giant_adj"]
+
+
+VCF = ["#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS\n"] + [
+    f"1\t{100 * i}\trs{i}\tA\tG\t.\tPASS\t.\tES:SE:LP:AF:SS:ID\t0.1:0.01:5:0.2:900:rs{i}\n" for i in range(1, 11)]
+
+
+def test_extract_reads_only_new_variants_and_honours_legacy_checkpoints(tmp_path, monkeypatch):
+    import gzip
+    monkeypatch.setattr(fetch, "CACHE", tmp_path / "cache")
+    (tmp_path / "cache").mkdir()
+    keep = tmp_path / "files"
+    keep.mkdir()
+    with gzip.open(keep / "s1.vcf.gz", "wt") as fh:
+        fh.writelines(VCF)
+    # a checkpoint written by the old script: rows for rs1-rs3, searched for rs1-rs5, no sidecar
+    pd.DataFrame(fetch.parse_vcf_stream(VCF, {"rs1", "rs2", "rs3"}, "s1")).to_csv(
+        tmp_path / "cache" / "extract_s1.csv.gz", index=False, compression="gzip")
+    legacy = {f"rs{i}" for i in range(1, 6)}
+    rows, status = fetch.extract_study(None, "s1", {"rs1", "rs2"}, keep, legacy_searched=legacy)
+    assert status == "extract already saved" and len(rows) == 3
+    # rs4/rs5 were searched before (legacy) -> not re-read; rs7 is new -> read and appended
+    rows, status = fetch.extract_study(None, "s1", {"rs1", "rs4", "rs5", "rs7"}, keep, legacy_searched=legacy)
+    assert "+1 new variants" in status
+    assert sorted(r["rsid"] for r in rows) == ["rs1", "rs2", "rs3", "rs7"]
+    assert fetch._searched_path("s1").exists()
+    rows, status = fetch.extract_study(None, "s1", {"rs7"}, keep)  # sidecar now authoritative
+    assert status == "extract already saved"
+
+
+def test_fetch_by_files_measures_coverage_on_bp_variants_only(tmp_path, monkeypatch):
+    import gzip
+    monkeypatch.setattr(fetch, "CACHE", tmp_path / "cache")
+    (tmp_path / "cache").mkdir()
+    keep = tmp_path / "files"
+    keep.mkdir()
+    with gzip.open(keep / "s1.vcf.gz", "wt") as fh:
+        fh.writelines(VCF[:4])  # rs1-rs3 only
+    core = {"rs1", "rs2", "rs3", "rs4"}
+    got, rep, dead = fetch.fetch_by_files(None, {"s1": core | {"rs99"}}, core, CATALOG, workers=1, keep_dir=keep)
+    assert not dead and rep[0]["found"] == 3 and rep[0]["missing_pct"] == 25.0

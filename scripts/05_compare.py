@@ -9,7 +9,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from bpmr import config  # noqa: E402
-from bpmr.compare import pairwise, permutation_test, q_between  # noqa: E402
+from bpmr.compare import mr_clusters, pairwise, permutation_test, q_between  # noqa: E402
 
 
 def main():
@@ -25,9 +25,9 @@ def main():
     scale = info["scale"]
 
     rows, pairs = [], []
-    for partition in ["hclust", "bnmf"]:
-        gate = pd.read_csv(stab / f"{partition}_stability_summary.csv").set_index("cluster")["goes_to_mr"]
-        ok = [int(c[1:]) for c, g in gate.items() if g]
+    for partition in config.PARTITIONS:
+        ss = pd.read_csv(stab / f"{partition}_stability_summary.csv").set_index("cluster")
+        ok, exploratory = mr_clusters(ss["goes_to_mr"], ss["n_variants"], s.min_cluster_snps)
         inst = var[var["mr_instrument"]].join(labels[[partition]], how="inner")
         inst = inst[inst[partition].isin(ok)]
         names = {c: meta["names"][partition][str(c)] for c in ok}
@@ -43,21 +43,25 @@ def main():
             Q, Qp = q_between(sub["b"].to_numpy(), sub["se"].to_numpy())
             perm = permutation_test(bx, sx, by, sy, lab, B=s.perm_B, seed=s.seed)
             rows.append(dict(partition=partition, outcome=o, n_clusters=len(sub), Q_between=Q, Q_df=len(sub) - 1,
-                             Q_p=Qp, perm_p=perm["perm_p"], perm_null_median_Q=perm["null_median"]))
+                             Q_p=Qp, perm_p=perm["perm_p"], perm_null_median_Q=perm["null_median"],
+                             exploratory=exploratory))
             pw = pairwise(bx, sx, by, sy, lab, names, B=s.pair_B, seed=s.seed)
             pw.insert(0, "outcome", o)
             pw.insert(0, "partition", partition)
+            pw["exploratory"] = exploratory
             pairs.append(pw)
     het = pd.DataFrame(rows)
     het.to_csv(out / "between_cluster_heterogeneity.csv", index=False)
-    pw = pd.concat(pairs, ignore_index=True)
+    pw = pd.concat(pairs, ignore_index=True) if pairs else pd.DataFrame(
+        columns=["partition", "outcome", "name_a", "name_b", "diff_logOR", "diff_p", "ratio_logOR", "ratio_lo", "ratio_hi",
+                 "ratio_interpretable", "exploratory"])
     pw["diff_logOR_scaled"] = pw["diff_logOR"] * scale
     pw["ratio_OR_scaled"] = np.exp(pw["diff_logOR_scaled"])
     pw.to_csv(out / "pairwise_contrasts.csv", index=False)
 
     # stroke-vs-CAD specificity: does a cluster's stroke effect differ from its CAD effect more than average?
     spec_rows = []
-    for partition in ["hclust", "bnmf"]:
+    for partition in config.PARTITIONS:
         iv = mr[(mr["partition"] == partition) & (mr["method"] == "IVW")]
         for o in [x for x in iv["outcome"].unique() if x.startswith("stroke") or x == "ich"]:
             a = iv[iv["outcome"] == o].set_index("cluster")
@@ -70,7 +74,10 @@ def main():
                                       diff=d * scale, diff_se=se * scale))
     pd.DataFrame(spec_rows).to_csv(out / "stroke_vs_cad_by_cluster.csv", index=False)
 
-    print(het[het["partition"] == s.primary].round(4).to_string(index=False))
+    if het.empty:
+        print("no partition had two or more clusters to compare")
+    else:
+        print(het[het["partition"] == s.primary].round(4).to_string(index=False))
     top = pw[(pw["partition"] == s.primary) & pw["ratio_interpretable"]].sort_values("diff_p").head(10)
     print("\nStrongest pairwise contrasts (" + info["label"] + "):")
     for r in top.itertuples():

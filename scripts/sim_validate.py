@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Score a pipeline run on SIMULATED data against the planted truth (data/sim_raw/truth.csv):
-  * cluster recovery: adjusted Rand index of hclust / bNMF labels vs the planted mechanisms
+  * cluster recovery: adjusted Rand index of k-means / hclust / bNMF labels vs the planted mechanisms
   * MR recovery: each found cluster is matched to its majority planted mechanism; IVW log-OR vs planted theta
   * MVMR: does adjusting for BMI remove the planted BMI->CAD pleiotropy in the adiposity cluster?
 Writes <out>/sim_validation.md.
@@ -28,11 +28,11 @@ def main():
     t = truth.reindex(labels.index)
     L = ["# Simulation validation", "", f"Planted mechanisms: {t.value_counts().to_dict()}", ""]
     L += ["| partition | ARI vs truth | K found |", "|---|---|---|"]
-    for p in ["hclust", "bnmf"]:
+    for p in config.PARTITIONS:
         L.append(f"| {p} | {ari(t.astype('category').cat.codes, labels[p]):.3f} | {labels[p].nunique()} |")
 
     rows = []
-    for p in ["hclust", "bnmf"]:
+    for p in config.PARTITIONS:
         for c in sorted(labels[p].unique()):
             m = t[labels[p] == c]
             mech, purity = m.value_counts().idxmax(), m.value_counts(normalize=True).max()
@@ -47,7 +47,7 @@ def main():
                                  est=est, se=se, expected=exp, z=(est - exp) / se))
     d = pd.DataFrame(rows)
     d.to_csv(s.outp / "sim_validation_mr.csv", index=False)
-    for p in ["hclust", "bnmf"]:
+    for p in config.PARTITIONS:
         dd = d[d["partition"] == p]
         cover = (dd["z"].abs() < 1.96).mean()
         corr = np.corrcoef(dd["est"], dd["expected"])[0, 1]

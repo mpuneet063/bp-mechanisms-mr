@@ -29,10 +29,10 @@ def main():
     man = pd.read_csv(prep / "manifest_used.csv").set_index("key")
     scale = info["scale"]
 
-    inst = var[var["mr_instrument"]].join(labels[["hclust", "bnmf"]], how="inner")
+    inst = var[var["mr_instrument"]].join(labels[config.PARTITIONS], how="inner")
     outcomes = [o for o in s.outcomes if o in man.index and isinstance(man.loc[o, "id"], str)]
     rows, steiger_rows = [], []
-    for partition in ["hclust", "bnmf"]:
+    for partition in config.PARTITIONS:
         gate = pd.read_csv(stab / f"{partition}_stability_summary.csv").set_index("cluster")["goes_to_mr"]
         groups = [("all", inst.index)] + [(f"c{c}", inst.index[inst[partition] == c]) for c in sorted(inst[partition].unique())]
         for o in outcomes:
@@ -40,8 +40,8 @@ def main():
             d = inst.join(oy).dropna(subset=["by", "sy"])
             binary = pd.notna(man.loc[o, "ncase"]) and float(man.loc[o, "ncase"] or 0) > 0
             for g, idx in groups:
-                if partition == "bnmf" and g == "all":
-                    continue  # identical to the hclust "all" row
+                if partition != config.PARTITIONS[0] and g == "all":
+                    continue  # identical to the first partition's "all" row
                 dd = d.loc[d.index.intersection(idx)]
                 if len(dd) < 3:
                     continue

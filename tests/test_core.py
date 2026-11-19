@@ -132,3 +132,16 @@ def test_profile_matrix_per_sbp():
     pm = profile_matrix(z, "per_sbp")
     assert list(pm.columns) == ["bmi"]
     assert pm["bmi"].iloc[1] == pytest.approx(2 * pm["bmi"].iloc[0])
+
+
+def test_choose_k_prefers_resolution_among_stable_k():
+    import pandas as pd
+    from bpmr.cluster import choose_k
+    sim = pd.DataFrame(dict(k=[3, 4, 5, 6, 7, 8], mean_jaccard=[.83, .98, .95, .97, .85, .85],
+                            min_cluster_jaccard=[.75, .98, .87, .96, .52, .65]))
+    assert choose_k(sim, 0.6, 0.75)[0] == 6
+    real = pd.DataFrame(dict(k=[3, 4, 5, 6, 8], mean_jaccard=[.66, .56, .76, .61, .60],
+                             min_cluster_jaccard=[.60, .49, .70, .39, .47]))
+    assert choose_k(real, 0.6, 0.75)[0] == 5
+    none = real.assign(min_cluster_jaccard=0.3)
+    assert choose_k(none, 0.6, 0.75)[0] == 5

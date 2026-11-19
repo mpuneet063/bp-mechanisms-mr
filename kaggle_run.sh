@@ -33,7 +33,7 @@ work = pathlib.Path(os.getcwd())
 dest = work.parent / "results_bundle.zip"
 with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as z:
     for f in list((work / "results").rglob("*")) + [work / "data/raw" / n for n in
-                  ("manifest.csv", "manifest_alternatives.csv", "fetch_log.txt", "instruments.csv")]:
+                  ("manifest.csv", "manifest_alternatives.csv", "fetch_log.txt", "instruments.csv", "file_extract_report.csv")]:
         if f.is_file() and f.suffix != ".npy":
             z.write(f, f.relative_to(work.parent))
 print("wrote", dest)

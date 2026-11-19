@@ -13,7 +13,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from bpmr import config  # noqa: E402
-from bpmr.compare import conditional_f, mvmr_ivw  # noqa: E402
+from bpmr.compare import conditional_f, mr_clusters, mvmr_ivw  # noqa: E402
 from bpmr.data import wide  # noqa: E402
 
 
@@ -29,8 +29,8 @@ def main():
     mr = pd.read_csv(mrd / "mr_results.csv")
     inst_tab = pd.read_csv(Path(s.raw) / "instruments.csv")
     part = s.primary
-    gate = pd.read_csv(stab / f"{part}_stability_summary.csv").set_index("cluster")["goes_to_mr"]
-    ok = [int(c[1:]) for c, g in gate.items() if g]
+    ss = pd.read_csv(stab / f"{part}_stability_summary.csv").set_index("cluster")
+    ok, exploratory = mr_clusters(ss["goes_to_mr"], ss["n_variants"], s.min_cluster_snps)
     mediators = [m for m in config.MVMR_MEDIATORS if m in set(h["key"])]
 
     bp = var[var["mr_instrument"]].join(labels[[part]], how="inner")
@@ -70,6 +70,7 @@ def main():
     mv["OR_lo"] = np.exp(mv["b_scaled"] - 1.96 * mv["se_scaled"])
     mv["OR_hi"] = np.exp(mv["b_scaled"] + 1.96 * mv["se_scaled"])
     mv["name"] = mv["exposure"].map(lambda e: meta["names"][part].get(e.split("c")[-1], "") if "via c" in e else "")
+    mv["exploratory"] = exploratory
     mv.to_csv(out / "mvmr_results.csv", index=False)
 
     # side-by-side: univariable vs multivariable for each cluster
@@ -81,9 +82,14 @@ def main():
             u = uni.loc[(c, r.outcome)]
             comp.append(dict(cluster=c, name=r.name, outcome=r.outcome, OR_univariable=u["OR"], OR_mvmr=r.OR,
                              OR_mvmr_lo=r.OR_lo, OR_mvmr_hi=r.OR_hi, p_mvmr=r.p))
-    pd.DataFrame(comp).to_csv(out / "univariable_vs_mvmr.csv", index=False)
+    comp = pd.DataFrame(comp, columns=["cluster", "name", "outcome", "OR_univariable", "OR_mvmr", "OR_mvmr_lo",
+                                       "OR_mvmr_hi", "p_mvmr"])
+    comp["exploratory"] = exploratory
+    comp.to_csv(out / "univariable_vs_mvmr.csv", index=False)
     print("Conditional F:", cf.round(1).to_dict())
-    print(pd.DataFrame(comp).round(3).to_string(index=False))
+    if exploratory:
+        print("no cluster passed the stability gate: MVMR run on all clusters, flagged exploratory")
+    print(comp.round(3).to_string(index=False))
 
 
 if __name__ == "__main__":

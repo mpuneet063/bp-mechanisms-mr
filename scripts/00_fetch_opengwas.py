@@ -19,8 +19,9 @@ What it does
    plus the Keaton 2024 rsIDs if the supplementary table is supplied, plus
    instruments for BMI, LDL and T2D (needed for multivariable MR).
 3. Gets every variant's association in every study. Default (--source files): stream each
-   study's full summary-statistics file (GWAS-VCF) from OpenGWAS and keep only our variants;
-   about 1-3 min a study, one small extract per study saved as a checkpoint. No LD proxies.
+   study's full summary-statistics file (GWAS-VCF) from OpenGWAS into data/raw/files/ (kept, so a
+   restarted runtime never downloads it twice; --no-keep-files streams instead) and keep only our
+   variants; one small extract per study saved as a checkpoint. No LD proxies.
    --source api: the per-variant API look-ups instead (LD proxies, but ~2 min per 64 variants).
 4. LD-clumps the BP variants at r2 < 0.001 and r2 < 0.05 (1000G EUR, server side).
 
@@ -396,56 +397,103 @@ def parse_vcf_stream(lines, wanted: set, sid: str, default_n=None):
     return rows
 
 
-def extract_study(api, sid, wanted: set, scratch: Path | None, default_n=None, tries=3):
-    """Stream one study's file, filter it, save the extract (the checkpoint). Returns (rows, status)."""
+def _get(api, url, extra_headers=None):
+    """GET a file link. Signed links must not carry the token; plain ones may need it (retry on 401/403)."""
+    h = dict(extra_headers or {})
+    r = requests.get(url, stream=True, timeout=(30, 300), headers=h)
+    if r.status_code in (401, 403):
+        r.close()
+        h["Authorization"] = api.s.headers["Authorization"]
+        r = requests.get(url, stream=True, timeout=(30, 300), headers=h)
+    return r
+
+
+def download_file(api, sid, keep: Path) -> str:
+    """Download the study's .vcf.gz to `keep`, resuming a half-finished `.part` file when the server allows it."""
+    part = keep.with_name(keep.name + ".part")
+    last = "no download link worked"
+    for url in file_links(api, sid):  # re-requested every time: signed links expire
+        have = part.stat().st_size if part.exists() else 0
+        with _get(api, url, {"Range": f"bytes={have}-"} if have else None) as r:
+            if r.status_code == 416 and have:  # nothing left to fetch: the .part is already complete
+                os.replace(part, keep)
+                return "download finished earlier"
+            if r.status_code == 206 and have:
+                mode, how = "ab", f"download resumed at {have / 1e6:.0f} MB"
+            elif r.status_code == 200:
+                mode, how = "wb", "downloaded"
+            else:
+                last = f"HTTP {r.status_code} from {url.split('?')[0]}"
+                continue
+            r.raw.decode_content = False  # keep the bytes exactly as served
+            with open(part, mode) as fh:
+                for chunk in r.raw.stream(1 << 20, decode_content=False):
+                    fh.write(chunk)
+        os.replace(part, keep)
+        return how
+    raise IOError(last)
+
+
+def _open_text(path: Path):
+    import gzip
+    with open(path, "rb") as fh:
+        magic = fh.read(2)
+    return gzip.open(path, "rt") if magic == b"\x1f\x8b" else open(path, "rt")
+
+
+def extract_study(api, sid, wanted: set, keep_dir: Path | None, default_n=None, tries=3):
+    """
+    One study -> rows for our variants, saved as data/raw/cache/extract_<sid>.csv.gz (the checkpoint).
+    keep_dir set (default): the full .vcf.gz is kept there and reused by later runs, so a dead runtime never
+    costs a second download; a half-finished download resumes. keep_dir None: stream and filter, nothing kept.
+    """
     import gzip
     import io
+    import zlib
     done = CACHE / f"extract_{sid}.csv.gz"
     if done.exists():
         try:
-            return pd.read_csv(done).to_dict("records"), "cached"
+            return pd.read_csv(done).to_dict("records"), "extract already saved"
         except Exception:  # noqa: BLE001 - a broken checkpoint is redone
             done.unlink(missing_ok=True)
     last = None
     for attempt in range(tries):
-        for url in file_links(api, sid):  # links are re-requested each attempt: signed links expire
-            try:
-                t0 = time.time()
-                r = requests.get(url, stream=True, timeout=(30, 300))
-                if r.status_code in (401, 403):  # some hosts want the OpenGWAS token; signed links must NOT get it
-                    r.close()
-                    r = requests.get(url, stream=True, timeout=(30, 300), headers={"Authorization": api.s.headers["Authorization"]})
-                with r:
-                    if r.status_code != 200:
-                        last = f"HTTP {r.status_code} from {url.split('?')[0]}"
-                        continue
-                    raw = r.raw
-                    raw.decode_content = True
-                    if scratch is not None:  # keep the whole file too (re-extraction later needs no download)
-                        scratch.mkdir(parents=True, exist_ok=True)
-                        keep = scratch / f"{sid}.vcf.gz"
-                        tmp = keep.with_suffix(".part")
-                        with open(tmp, "wb") as fh:
-                            for chunk in r.iter_content(1 << 20):
-                                fh.write(chunk)
-                        os.replace(tmp, keep)
-                        stream = gzip.open(keep, "rt")
-                    else:
-                        stream = io.TextIOWrapper(gzip.GzipFile(fileobj=raw), encoding="utf-8")
-                    with stream:
-                        rows = parse_vcf_stream(stream, wanted, sid, default_n)
-                secs = time.time() - t0
-                tmpc = CACHE / f".extract_{sid}.csv.gz.tmp"
-                pd.DataFrame(rows).to_csv(tmpc, index=False, compression="gzip")
-                os.replace(tmpc, done)
-                return rows, f"downloaded in {secs / 60:.1f} min"
-            except (requests.RequestException, OSError, EOFError, ValueError) as e:
-                last = f"{type(e).__name__}: {e}"
+        t0 = time.time()
+        stage = "download"
+        try:
+            if keep_dir is not None:
+                keep_dir.mkdir(parents=True, exist_ok=True)
+                keep = keep_dir / f"{sid}.vcf.gz"
+                how = "file already on disk" if keep.exists() else download_file(api, sid, keep)
+                stage = "read"
+                with _open_text(keep) as fh:
+                    rows = parse_vcf_stream(fh, wanted, sid, default_n)
+            else:
+                rows, how = None, "streamed"
+                for url in file_links(api, sid):
+                    with _get(api, url) as r:
+                        if r.status_code != 200:
+                            last = f"HTTP {r.status_code} from {url.split('?')[0]}"
+                            continue
+                        r.raw.decode_content = True
+                        with io.TextIOWrapper(gzip.GzipFile(fileobj=r.raw), encoding="utf-8") as fh:
+                            rows = parse_vcf_stream(fh, wanted, sid, default_n)
+                    break
+                if rows is None:
+                    raise IOError(last)
+            tmpc = CACHE / f".extract_{sid}.csv.gz.tmp"
+            pd.DataFrame(rows).to_csv(tmpc, index=False, compression="gzip")
+            os.replace(tmpc, done)
+            return rows, f"{how}, {(time.time() - t0) / 60:.1f} min"
+        except (requests.RequestException, OSError, EOFError, ValueError, zlib.error) as e:
+            last = f"{type(e).__name__} during {stage}: {e}"
+            if stage == "read" and keep_dir is not None:  # a damaged file on disk: drop it, fetch it again
+                (keep_dir / f"{sid}.vcf.gz").unlink(missing_ok=True)
         time.sleep(15 * (attempt + 1))
     return None, f"FAILED ({last})"
 
 
-def fetch_by_files(api, study_ids, snps, catalog, workers=3, scratch=None):
+def fetch_by_files(api, study_ids, snps, catalog, workers=3, keep_dir=None):
     from concurrent.futures import ThreadPoolExecutor, as_completed
     wanted = set(snps)
     long_rows, report, dead = [], [], []
@@ -456,7 +504,7 @@ def fetch_by_files(api, study_ids, snps, catalog, workers=3, scratch=None):
             n = float(n) if n is not None else None
         except (TypeError, ValueError):
             n = None
-        return sid, extract_study(api, sid, wanted, scratch, default_n=n)
+        return sid, extract_study(api, sid, wanted, keep_dir, default_n=n)
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futs = [pool.submit(one, sid) for sid in study_ids]
@@ -520,7 +568,9 @@ def main():
                     help="files (default): stream each study's full summary file; api: per-variant look-ups")
     ap.add_argument("--workers", type=int, default=3, help="studies downloaded at once (files mode)")
     ap.add_argument("--keep-files", type=Path, default=None,
-                    help="also save each full .vcf.gz in this folder (files mode); off by default")
+                    help="folder for the full .vcf.gz files (files mode); default data/raw/files")
+    ap.add_argument("--no-keep-files", action="store_true",
+                    help="stream and filter without keeping the full files")
     args = ap.parse_args()
     args.chunk = max(1, min(args.chunk, MAX_ASSOC_PER_REQUEST))
 
@@ -613,8 +663,11 @@ def main():
     study_ids = sorted(set(ids.values()))
     probe = th[0]["rsid"] if th else snps[0]  # an SBP lead variant: valid in any study
     if args.source == "files":
-        log(f"Streaming {len(study_ids)} study files, {args.workers} at a time (checkpoint per study in {CACHE})")
-        long_rows, dead_studies = fetch_by_files(api, study_ids, snps, catalog, args.workers, args.keep_files)
+        keep_dir = None if args.no_keep_files else (args.keep_files or OUT / "files")
+        log(f"Fetching {len(study_ids)} study files, {args.workers} at a time; "
+            + (f"full files kept in {keep_dir}" if keep_dir else "streamed, not kept")
+            + f"; one extract per study in {CACHE}")
+        long_rows, dead_studies = fetch_by_files(api, study_ids, snps, catalog, args.workers, keep_dir)
         study_ids = []  # skip the per-variant API loop below
     for i, sid in enumerate(study_ids, 1):
         n_before, n_failed = len(long_rows), len(failed)

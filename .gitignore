@@ -8,3 +8,4 @@ results*/01_prepare/harmonised.csv.gz
 results_sim_fast/
 .ipynb_checkpoints/
 data/sim_raw/
+data/raw/files/

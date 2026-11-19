@@ -7,8 +7,9 @@
 #
 # Needs internet access (on Kaggle: Settings -> Internet -> On). Safe to re-run: each study's extract
 # (and every API call) is saved in data/raw/cache/, so an interrupted run resumes where it stopped.
-# Options: FETCH_WORKERS=3 (studies at once), KEEP_FILES_DIR=/path (also keep the full .vcf.gz files),
-#          FETCH_SOURCE=api (old per-variant look-ups).
+# Options: FETCH_WORKERS=3 (studies at once); full .vcf.gz files are kept in data/raw/files by default
+#          (KEEP_FILES_DIR=/path to put them elsewhere, KEEP_FILES=0 to stream without keeping them);
+#          FETCH_SOURCE=api (old per-variant look-ups). Delete data/raw/files when the experiment is done.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -27,7 +28,8 @@ fi
 
 # FETCH_SOURCE=files (default: stream whole study files, ~1-2 h) or api (per-variant look-ups, LD proxies, ~2 min per 64)
 ARGS+=(--source "${FETCH_SOURCE:-files}" --workers "${FETCH_WORKERS:-3}")
-if [[ -n "${KEEP_FILES_DIR:-}" ]]; then ARGS+=(--keep-files "${KEEP_FILES_DIR}"); fi
+if [[ "${KEEP_FILES:-1}" == "0" ]]; then ARGS+=(--no-keep-files)
+elif [[ -n "${KEEP_FILES_DIR:-}" ]]; then ARGS+=(--keep-files "${KEEP_FILES_DIR}"); fi
 python scripts/00_fetch_opengwas.py "${ARGS[@]+"${ARGS[@]}"}"
 
 for f in manifest.csv associations.csv.gz instruments.csv; do

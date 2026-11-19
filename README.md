@@ -14,7 +14,7 @@ It builds on:
 It adds three things that paper does not report:
 
 1. **Cluster stability.** Variant bootstrap (Jaccard), a bootstrap over GWAS sampling noise, leave-one-trait-out and a K scan. Clusters below a pre-specified threshold are flagged before any MR is run.
-2. **Causal estimates per cluster.** MR on GIGASTROKE subtypes, intracerebral haemorrhage and CAD, with FinnGen replication.
+2. **Causal estimates per cluster.** MR on ischaemic stroke subtypes, intracerebral haemorrhage and CAD, with FinnGen replication. Stroke outcomes come from GIGASTROKE (Mishra 2022) where OpenGWAS has it, otherwise MEGASTROKE (Malik 2018). CAD comes from a consortium meta-analysis (Aragam 2022, else van der Harst 2017, else Nikpay 2015).
 3. **A formal between-cluster test.** Cochran's Q, a label-permutation null and pairwise contrasts, plus multivariable MR that separates "SBP through mechanism k" from each cluster's BMI/LDL/T2D pleiotropy.
 
 Everything uses public summary statistics. No individual-level data is needed.

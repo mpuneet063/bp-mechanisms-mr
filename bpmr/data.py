@@ -37,6 +37,10 @@ def load_raw(raw_dir: str | Path) -> RawData:
     assoc["nea"] = assoc["nea"].astype(str).str.upper()
     assoc = assoc.dropna(subset=["beta", "se"])
     assoc = assoc[assoc["se"] > 0]
+    # a proxy hit is reported for the variant that was asked for (target_snp), not the proxy's own rsid
+    if "proxy" in assoc and "target_snp" in assoc:
+        is_proxy = assoc["proxy"].astype(str).str.lower().isin(["true", "1"]) & assoc["target_snp"].notna()
+        assoc.loc[is_proxy, "rsid"] = assoc.loc[is_proxy, "target_snp"]
     # if a variant was found both directly and via a proxy, keep the direct hit
     if "proxy" in assoc:
         assoc["_proxy"] = assoc["proxy"].astype(str).str.lower().isin(["true", "1"])

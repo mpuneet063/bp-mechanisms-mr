@@ -50,7 +50,7 @@ CACHE = OUT / "cache"
 #   all:      every keyword must appear in the trait name (case-insensitive)
 #   any:      at least one must appear (optional)
 #   exclude:  none may appear
-#   author:   preferred first-author surname (optional)
+#   author:   preferred first-author surname, or a list in order of preference (optional)
 #   year:     preferred year (optional)
 #   prefix:   restrict to ids starting with this (optional)
 #   binary:   rank candidates by number of cases instead of sample size
@@ -60,7 +60,7 @@ STUDY_SPECS = [
     # BP itself (exposure + part of the clustering profile)
     dict(key="sbp", role="exposure", pin="ieu-b-38", all=["systolic blood pressure"], author="Evangelou"),
     dict(key="dbp", role="cluster_trait", pin="ieu-b-39", all=["diastolic blood pressure"], author="Evangelou"),
-    dict(key="pp", role="cluster_trait", all=["pulse pressure"], author="Evangelou"),
+    dict(key="pp", role="cluster_trait", all=["pulse pressure"], author=["Evangelou", "Keaton", "Warren"]),
     # adiposity / anthropometry
     dict(key="bmi", role="cluster_trait", pin="ieu-b-40", all=["body mass index"],
          exclude=["adjusted", "childhood", "change", "age"], author="Yengo"),
@@ -87,8 +87,9 @@ STUDY_SPECS = [
     dict(key="na_urine", role="cluster_trait", all=["sodium in urine"]),
     dict(key="k_urine", role="cluster_trait", all=["potassium in urine"]),
     # cardiac / inflammation / liver / behaviour
-    dict(key="hr", role="cluster_trait", all=["heart rate"],
-         exclude=["variability", "recovery", "increase", "during", "maximum"]),
+    dict(key="hr", role="cluster_trait", any=["heart rate", "pulse rate"],
+         exclude=["variability", "recovery", "increase", "during", "maximum", "foetal", "fetal", "labour", "labor",
+                  "delivery", "diagnos", "icd", "complicat", "pregnan", "change", "response", "exercise"]),
     dict(key="crp", role="cluster_trait", all=["c-reactive protein"]),
     dict(key="alt", role="cluster_trait", all=["alanine aminotransferase"]),
     dict(key="alcohol", role="cluster_trait", any=["drinks per week", "alcohol consumption", "alcoholic drinks per week"]),
@@ -97,17 +98,22 @@ STUDY_SPECS = [
     dict(key="stroke_any", role="outcome", all=["stroke"],
          exclude=["ischemic", "ischaemic", "large", "small", "cardio", "lacunar", "hemorrh",
                   "haemorrh", "family", "father", "mother", "sibling", "age", "outcome", "recurr"],
-         author="Mishra", year=2022, binary=True),
+         author=["Mishra", "Malik"], binary=True),
     dict(key="stroke_is", role="outcome", any=["ischemic stroke", "ischaemic stroke"],
          exclude=["large", "small", "cardio", "lacunar", "outcome", "recurr", "excluding"],
-         author="Mishra", year=2022, binary=True),
-    dict(key="stroke_las", role="outcome", all=["large artery"], author="Mishra", year=2022, binary=True),
-    dict(key="stroke_ces", role="outcome", all=["cardioembolic"], author="Mishra", year=2022, binary=True),
-    dict(key="stroke_svs", role="outcome", all=["small vessel", "stroke"], author="Mishra", year=2022, binary=True),
+         author=["Mishra", "Malik"], binary=True),
+    # GIGASTROKE (Mishra 2022) is preferred if OpenGWAS has it; otherwise MEGASTROKE (Malik 2018).
+    # MEGASTROKE writes subtypes with hyphens ("small-vessel"), so match both spellings.
+    dict(key="stroke_las", role="outcome", all=["stroke"], any=["large artery", "large-artery"],
+         author=["Mishra", "Malik"], binary=True),
+    dict(key="stroke_ces", role="outcome", all=["stroke"], any=["cardioembolic", "cardio-embolic"],
+         author=["Mishra", "Malik"], binary=True),
+    dict(key="stroke_svs", role="outcome", all=["stroke"], any=["small vessel", "small-vessel"],
+         author=["Mishra", "Malik"], binary=True),
     dict(key="ich", role="outcome", all=["intracerebral"], any=["hemorrhage", "haemorrhage"], binary=True),
     dict(key="cad", role="outcome", all=["coronary artery disease"],
          exclude=["family", "age", "father", "mother", "sibling", "self-reported"],
-         author="Aragam", year=2022, binary=True),
+         author=["Aragam", "van der Harst", "Nikpay"], binary=True),  # consortium meta-analyses, newest first
     # replication outcomes (FinnGen release in OpenGWAS)
     dict(key="fg_stroke", role="replication", prefix="finn-b-", all=["stroke"], any=["excluding sah", "excl sah", "excluding subarachnoid"], binary=True),
     dict(key="fg_is", role="replication", prefix="finn-b-", any=["ischemic stroke", "ischaemic stroke"],
@@ -116,6 +122,8 @@ STUDY_SPECS = [
 ]
 
 MVMR_KEYS = ["bmi", "ldl", "t2d"]  # extra instruments pulled for multivariable MR
+MIN_NSNP = 1_000_000                 # a study must cover at least this many variants to be used
+MAX_ASSOC_PER_REQUEST = 64           # OpenGWAS API v4 limit: N(id) * N(variant) <= 64 per request
 
 
 # --------------------------------------------------------------------------- #
@@ -165,7 +173,11 @@ class Api:
                 time.sleep(15 * (attempt + 1))
                 continue
             if r.status_code == 401:
-                sys.exit("401 Unauthorized: check OPENGWAS_JWT (get one at https://api.opengwas.io/profile/)")
+                exp = (f" Your token expired at {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(TOKEN_EXP))}."
+                       if TOKEN_EXP and TOKEN_EXP < time.time() else "")
+                log(f"401 Unauthorized.{exp} Tokens last 14 days: make a new one at https://api.opengwas.io/profile/, "
+                    "update OPENGWAS_JWT and re-run. Progress so far is cached and will be reused.")
+                sys.exit(1)
             if 400 <= r.status_code < 500:
                 raise ClientError(r.status_code, r.text)
             r.raise_for_status()
@@ -178,6 +190,18 @@ class Api:
         raise RuntimeError(f"Giving up on {path} after {tries} attempts")
 
 
+def jwt_expiry(token: str):
+    """Expiry time (UTC epoch seconds) from the token's payload, or None. No verification needed for this."""
+    import base64
+    try:
+        part = token.split(".")[1]
+        payload = json.loads(base64.urlsafe_b64decode(part + "=" * (-len(part) % 4)))
+        return float(payload["exp"])
+    except Exception:  # noqa: BLE001
+        return None
+
+
+TOKEN_EXP = None
 LOGF = None
 
 
@@ -225,12 +249,21 @@ def resolve(spec, catalog: pd.DataFrame):
     c["_eur"] = pop.str.contains("european").astype(int)
     c["_mixed"] = pop.str.contains("mixed").astype(int)
     c = c[(c["_eur"] == 1) | (c["_mixed"] == 1)] if ((c["_eur"] + c["_mixed"]) > 0).any() else c
-    c["_author"] = c["author"].fillna("").str.contains(spec.get("author", "@@none@@"), case=False).astype(int)
+    # genome-wide studies only: exome/targeted arrays (e.g. Surendran 2020 pulse pressure) miss most variants
+    nsnp = c["nsnp"].apply(_num)
+    gw = c[(nsnp == 0) | (nsnp >= MIN_NSNP)]
+    if not gw.empty:
+        c = gw.copy()
+    authors = spec.get("author", [])
+    authors = [authors] if isinstance(authors, str) else authors
+    c["_author"] = 0
+    for rank, a in enumerate(reversed(authors), 1):  # earlier in the list = higher score
+        c.loc[c["author"].fillna("").str.contains(a, case=False, regex=False), "_author"] = rank
     c["_year"] = (c["year"].apply(_num) == spec.get("year", -1)).astype(int)
     c["_size"] = c["ncase"].apply(_num) if spec.get("binary") else c["sample_size"].apply(_num)
     c["_size"] = c["_size"].where(c["_size"] > 0, c["sample_size"].apply(_num))
     c = c.sort_values(["_author", "_year", "_eur", "_size"], ascending=False)
-    how = "searched" + (" (author match)" if c["_author"].iloc[0] else "")
+    how = "searched" + (f" (author match: {c['author'].iloc[0]})" if c["_author"].iloc[0] else "")
     if pin:
         how += f"; pin {pin} did not match"
     return c.index[0], how, c
@@ -239,6 +272,30 @@ def resolve(spec, catalog: pd.DataFrame):
 # --------------------------------------------------------------------------- #
 # Main
 # --------------------------------------------------------------------------- #
+def _record_done(sid: str, variants: list[str]):
+    with open(CACHE / f"done_{sid}.txt", "a") as fh:
+        fh.write("\n".join(variants) + "\n")
+
+
+def _cached_study(sid: str):
+    """Rows and finished variants already on disk for a study, whatever chunk size produced them."""
+    rows, done = [], set()
+    for f in CACHE.glob(f"assoc_{sid}_*.json"):
+        try:
+            res = json.loads(f.read_text())
+        except (json.JSONDecodeError, OSError):
+            continue
+        if isinstance(res, list):
+            rows.extend(res)
+            for r in res:
+                is_proxy = str(r.get("proxy", "")).lower() in ("true", "1")
+                done.add(r.get("target_snp") if is_proxy and r.get("target_snp") else r.get("rsid"))
+    df = CACHE / f"done_{sid}.txt"
+    if df.exists():
+        done.update(x for x in df.read_text().split() if x)
+    return rows, done
+
+
 def lookup(api: "Api", sid: str, variants: list[str], proxies: int, failed: list, depth: int = 0) -> list:
     """
     Associations for one study. On a rejected request (HTTP 4xx): log the server's reason, retry without
@@ -249,6 +306,7 @@ def lookup(api: "Api", sid: str, variants: list[str], proxies: int, failed: list
                    maf_threshold=0.3)
     try:
         res = api.call("associations", payload, cache_key=key)
+        _record_done(sid, variants)
         return res if isinstance(res, list) else []
     except ClientError as e:
         if depth == 0:
@@ -256,6 +314,7 @@ def lookup(api: "Api", sid: str, variants: list[str], proxies: int, failed: list
         if proxies:
             try:
                 res = api.call("associations", dict(payload, proxies=0), cache_key=key + "_np")
+                _record_done(sid, variants)
                 if depth == 0:
                     log(f"  {sid}: OK without LD proxies for this chunk")
                 return res if isinstance(res, list) else []
@@ -306,16 +365,28 @@ def main():
     global LOGF
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--keaton", type=Path, help="Keaton et al. 2024 supplementary tables (.xlsx), optional")
-    ap.add_argument("--chunk", type=int, default=100, help="variants per association call")
+    ap.add_argument("--chunk", type=int, default=MAX_ASSOC_PER_REQUEST,
+                    help=f"variants per association call (API maximum {MAX_ASSOC_PER_REQUEST})")
     ap.add_argument("--no-proxies", action="store_true")
     args = ap.parse_args()
+    args.chunk = max(1, min(args.chunk, MAX_ASSOC_PER_REQUEST))
 
+    global TOKEN_EXP
     jwt = os.environ.get("OPENGWAS_JWT", "").strip()
     if not jwt:
         sys.exit("Set OPENGWAS_JWT first (free token: https://api.opengwas.io/profile/)")
+    TOKEN_EXP = jwt_expiry(jwt)
+    if TOKEN_EXP is not None:
+        left_h = (TOKEN_EXP - time.time()) / 3600
+        if left_h <= 0:
+            sys.exit(f"OPENGWAS_JWT expired at {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(TOKEN_EXP))}. "
+                     "Make a new one at https://api.opengwas.io/profile/ and re-run.")
     CACHE.mkdir(parents=True, exist_ok=True)
     LOGF = open(OUT / "fetch_log.txt", "a")
     log(f"=== fetch started {time.strftime('%Y-%m-%d %H:%M:%S')} ===")
+    if TOKEN_EXP is not None:
+        log(f"token valid until {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(TOKEN_EXP))} "
+            f"({(TOKEN_EXP - time.time()) / 86400:.1f} days left)")
     api = Api(jwt)
     log(f"API status: {api.call('status')}")
 
@@ -397,8 +468,13 @@ def main():
             log(f"  [{i}/{len(study_ids)}] {sid}: SKIPPED - the API rejects this study ({e})")
             dead_studies.append(dict(study=sid, reason=e.body[:300]))
             continue
-        n_chunks = (len(snps) + args.chunk - 1) // args.chunk
-        for j, ch in enumerate(chunks(snps, args.chunk), 1):
+        cached_rows, done = _cached_study(sid)
+        long_rows.extend(cached_rows)
+        todo = [v for v in snps if v not in done]
+        if done:
+            log(f"  [{i}/{len(study_ids)}] {sid}: {len(snps) - len(todo)} variants already cached, {len(todo)} to fetch")
+        n_chunks = (len(todo) + args.chunk - 1) // args.chunk
+        for j, ch in enumerate(chunks(todo, args.chunk), 1):
             long_rows.extend(lookup(api, sid, ch, 0 if args.no_proxies else 1, failed))
             if j % 10 == 0 and j < n_chunks:
                 print(f"    {sid}: chunk {j}/{n_chunks}", flush=True)

@@ -1,0 +1,21 @@
+kmeans noise-bootstrap ARI vs main: median 0.407 (IQR 0.364-0.442)
+kmeans stability by K (mean Jaccard): 2:0.93, 3:0.76, 4:0.64, 5:0.65, 6:0.63, 7:0.64, 8:0.60, 9:0.61, 10:0.58
+kmeans leave-one-trait-out ARI (lowest 5): height:0.40, uacr:0.42, bmi:0.52, pp:0.56, hr:0.57
+hclust noise-bootstrap ARI vs main: median 0.135 (IQR 0.110-0.163)
+hclust stability by K (mean Jaccard): 2:0.60, 3:0.50, 4:0.42, 5:0.38, 6:0.35, 7:0.33, 8:0.33, 9:0.32, 10:0.31
+hclust leave-one-trait-out ARI (lowest 5): hr:0.12, fg:0.15, alt:0.16, hdl:0.16, urate:0.16
+bNMF noise-bootstrap ARI vs main (20 reps): median 0.413
+kmeans per-cluster stability (K = 6):
+   c0 n= 251 Jaccard=0.57 keep_prob=0.67 [unstable] MR=flagged :: bmi-, bodyfat-, hdl+
+   c1 n= 338 Jaccard=0.66 keep_prob=0.69 [moderate] MR=yes :: bodyfat+, bmi+, hdl-
+   c2 n= 237 Jaccard=0.64 keep_prob=0.67 [moderate] MR=yes :: pp+, dbp-, height+
+   c3 n= 181 Jaccard=0.63 keep_prob=0.71 [moderate] MR=yes :: height-, pp+, ldl+
+   c4 n= 380 Jaccard=0.59 keep_prob=0.65 [unstable] MR=flagged :: height+, tg-, fi-
+   c5 n= 103 Jaccard=0.77 keep_prob=0.78 [stable] MR=yes :: tg+, hdl-, fi+
+hclust per-cluster stability (K = 6):
+   c0 n= 601 Jaccard=0.43 keep_prob=0.48 [unstable] MR=flagged :: tg-, hdl+, urate-
+   c1 n= 300 Jaccard=0.34 keep_prob=0.42 [unstable] MR=flagged :: bodyfat+, bmi+, hba1c+
+   c2 n= 132 Jaccard=0.20 keep_prob=0.26 [unstable] MR=flagged :: height+, alt-, bmi-
+   c3 n=  78 Jaccard=0.31 keep_prob=0.45 [unstable] MR=flagged :: height-, tg+, pp+
+   c4 n= 299 Jaccard=0.26 keep_prob=0.34 [unstable] MR=flagged :: hba1c-, bodyfat+, bmi+
+   c5 n=  80 Jaccard=0.50 keep_prob=0.51 [unstable] MR=flagged :: tg+, hdl-, fi+

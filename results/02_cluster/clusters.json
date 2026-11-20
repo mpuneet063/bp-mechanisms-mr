@@ -1,0 +1,80 @@
+{
+  "k": 6,
+  "k_reason": "largest K with every cluster bootstrap Jaccard >= 0.6 (gate); weakest cluster 0.62, mean 0.68",
+  "k_bnmf": 11,
+  "k_counts": {
+    "9": 11,
+    "10": 26,
+    "11": 41,
+    "12": 20,
+    "13": 2
+  },
+  "ari": {
+    "kmeans_vs_hclust": 0.20924576702645808,
+    "kmeans_vs_bnmf": 0.26507916083873423,
+    "hclust_vs_bnmf": 0.1248383268388798
+  },
+  "names": {
+    "kmeans": {
+      "0": "bmi-, bodyfat-, hdl+",
+      "1": "bodyfat+, bmi+, hdl-",
+      "2": "pp+, dbp-, height+",
+      "3": "height-, pp+, ldl+",
+      "4": "height+, tg-, fi-",
+      "5": "tg+, hdl-, fi+"
+    },
+    "hclust": {
+      "0": "tg-, hdl+, urate-",
+      "1": "bodyfat+, bmi+, hba1c+",
+      "2": "height+, alt-, bmi-",
+      "3": "height-, tg+, pp+",
+      "4": "hba1c-, bodyfat+, bmi+",
+      "5": "tg+, hdl-, fi+"
+    },
+    "bnmf": {
+      "0": "bmi-, bodyfat-, hdl+",
+      "1": "bmi+, bodyfat+, crp+",
+      "2": "pp+, dbp-, hr-",
+      "3": "height-, hr+, tg+",
+      "4": "pp-, dbp+, tg-",
+      "5": "hba1c+, fi+, urate+",
+      "6": "hdl-, tg+, urate+",
+      "7": "fg+, pp+, dbp-",
+      "8": "height+, ldl-, urate+",
+      "9": "hba1c-, urate+, ldl-",
+      "10": "ldl+, tg-, hdl-"
+    }
+  },
+  "sizes": {
+    "kmeans": {
+      "0": 251,
+      "1": 338,
+      "2": 237,
+      "3": 181,
+      "4": 380,
+      "5": 103
+    },
+    "hclust": {
+      "0": 601,
+      "1": 300,
+      "2": 132,
+      "3": 78,
+      "4": 299,
+      "5": 80
+    },
+    "bnmf": {
+      "0": 198,
+      "1": 103,
+      "2": 277,
+      "3": 63,
+      "4": 554,
+      "5": 193,
+      "6": 59,
+      "7": 2,
+      "8": 18,
+      "9": 20,
+      "10": 3
+    }
+  },
+  "primary": "kmeans"
+}

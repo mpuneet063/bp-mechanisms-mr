@@ -1,0 +1,626 @@
+=== fetch started 2026-11-18 21:57:18 ===
+API status: {'_NOTES_1': 'Check uptime and maintenance information at https://status.opengwas.io', '_NOTES_2': 'Throttling: Please note this endpoint (/api/status) is also subject to throttling (but separate from your API allowance). Do not call this endpoint more often than necessary.', '_NOTES_3': 'STATISTICS__N_REQS_IN_PAST_HOUR is the number of requests processed (not just received) in the past hour. Non-zero number usually means OpenGWAS has been operational overall.', 'API__VERSION': '4.0.0', 'API__BUILD': '20261118.1016', 'REFERENCES__ASSOCIATIONS_POS_PREFIX_INDICES': 'Available', 'REFERENCES__PLINK': 'Available', 'SERVICES__METADATA': 'Operational', 'SERVICES__ASSOCIATIONS': 'Operational', 'SERVICES__LOGGING': 'Operational', 'SERVICES__INGESTION_PIPELINE': 'Operational', 'STATISTICS__N_DATASETS': 50174, 'STATISTICS__N_PUBLIC_DATASETS': 50055, 'STATISTICS__N_REQS_IN_PAST_HOUR': 3557}
+50066 studies in OpenGWAS
+  [sbp] ieu-b-38  systolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [dbp] ieu-b-39  diastolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [pp] ebi-a-GCST90000065  Pulse pressure | Surendran P 2020.0 | n=810865.0 (searched)
+  [bmi] ieu-b-40  body mass index | Yengo, L 2018.0 | n=681275.0 (pinned)
+  [whradjbmi] ebi-a-GCST90025996  Waist-to-hip ratio adjusted for BMI | Barton AR 2021.0 | n=458349.0 (searched)
+  [bodyfat] ukb-b-8909  Body fat percentage | Ben Elsworth 2018.0 | n=454633.0 (searched)
+  [height] ebi-a-GCST90029008  Height | Loh PR 2018.0 | n=673878.0 (searched)
+  [ldl] ieu-b-110  LDL cholesterol | Richardson, Tom 2020.0 | n=440546.0 (pinned)
+  [hdl] ieu-b-109  HDL cholesterol | Richardson, Tom 2020.0 | n=403943.0 (pinned)
+  [tg] ieu-b-111  triglycerides | Richardson, Tom 2020.0 | n=441016.0 (pinned)
+  [t2d] ebi-a-GCST007517  Type 2 diabetes | Mahajan A 2018.0 | n=298957.0 (searched (author match))
+  [fg] ebi-a-GCST90002232  Fasting glucose | Chen J 2021.0 | n=200622.0 (searched)
+  [fi] ebi-a-GCST90002238  Fasting insulin | Chen J 2021.0 | n=151013.0 (searched)
+  [hba1c] ebi-a-GCST90014006  Glycated haemoglobin HbA1c levels (UKB data field 30750) | Mbatchou J 2021.0 | n=389889.0 (searched)
+  [egfr] ebi-a-GCST90103634  Estimated glomerular filtration rate (creatinine) | Stanzick KJ 2021.0 | n=1004040.0 (searched)
+  [urate] ieu-b-5137  Urate | Tang H 2024.0 | n=440466.0 (searched)
+  [uacr] ukb-d-30500_irnt  Microalbumin in urine | Neale lab 2018.0 | n=108706.0 (searched)
+  [na_urine] ebi-a-GCST90013989  Sodium in urine (UKB data field 30530) | Mbatchou J 2021.0 | n=396020.0 (searched)
+  [k_urine] ebi-a-GCST90013988  Potassium in urine (UKB data field 30520) | Mbatchou J 2021.0 | n=395995.0 (searched)
+  [hr] ukb-b-9270  Diagnoses - main ICD10: O68.0 Labour and delivery complicated by foetal heart rate anomaly | Ben Elsworth 2018.0 | n=463010.0 (searched)
+  [crp] ebi-a-GCST90029070  C-reactive protein levels | Said S 2022.0 | n=575531.0 (searched)
+  [alt] ebi-a-GCST90025979  Alanine aminotransferase levels | Barton AR 2021.0 | n=437724.0 (searched)
+  [alcohol] ieu-b-73  Alcoholic drinks per week | Liu, M 2019.0 | n=335394.0 (searched)
+  [smoking] ieu-b-4877  smoking initiation | Liu M 2019.0 | n=607291.0 (searched (author match))
+  [stroke_any] ebi-a-GCST005838  Stroke | Malik R 2018.0 | n=446696.0 (searched)
+  [stroke_is] ebi-a-GCST006908  Ischemic stroke | Malik R 2018.0 | n=440328.0 (searched)
+  [stroke_las] ebi-a-GCST006907  Ischemic stroke (large artery atherosclerosis) | Malik R 2018.0 | n=150765.0 (searched)
+  [stroke_ces] ebi-a-GCST006910  Ischemic stroke (cardioembolic) | Malik R 2018.0 | n=211763.0 (searched)
+  [stroke_svs] NOT FOUND - skipped
+  [ich] ebi-a-GCST90018870  Intracerebral hemorrhage | Sakaue S 2021.0 | n=473513.0 (searched)
+  [cad] ebi-a-GCST90013868  Coronary artery disease (SPA correction) | Mbatchou J 2021.0 | n=352063.0 (searched)
+  [fg_stroke] finn-b-I9_STR_EXNONE  "Stroke, excluding SAH" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_is] finn-b-I9_STR_EXH_EXNONE  "Ischaemic Stroke, excluding all haemorrhages" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_chd] finn-b-I9_CHD  Major coronary heart disease event | NA 2021.0 | n=nan (searched)
+SBP tophits: 461 (r2<0.001), 1117 (r2<0.05, 500kb)
+Keaton file: 2103 rsIDs from sheet 'Sheet1'
+MVMR instruments bmi: 501
+MVMR instruments ldl: 180
+MVMR instruments t2d: 54
+3768 unique variants to look up
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+=== fetch started 2026-11-18 23:46:49 ===
+API status: {'_NOTES_1': 'Check uptime and maintenance information at https://status.opengwas.io', '_NOTES_2': 'Throttling: Please note this endpoint (/api/status) is also subject to throttling (but separate from your API allowance). Do not call this endpoint more often than necessary.', '_NOTES_3': 'STATISTICS__N_REQS_IN_PAST_HOUR is the number of requests processed (not just received) in the past hour. Non-zero number usually means OpenGWAS has been operational overall.', 'API__VERSION': '4.0.0', 'API__BUILD': '20261118.1016', 'REFERENCES__ASSOCIATIONS_POS_PREFIX_INDICES': 'Available', 'REFERENCES__PLINK': 'Available', 'SERVICES__METADATA': 'Operational', 'SERVICES__ASSOCIATIONS': 'Operational', 'SERVICES__LOGGING': 'Operational', 'SERVICES__INGESTION_PIPELINE': 'Operational', 'STATISTICS__N_DATASETS': 50174, 'STATISTICS__N_PUBLIC_DATASETS': 50055, 'STATISTICS__N_REQS_IN_PAST_HOUR': 2900}
+50066 studies in OpenGWAS
+  [sbp] ieu-b-38  systolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [dbp] ieu-b-39  diastolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [pp] ebi-a-GCST90000065  Pulse pressure | Surendran P 2020.0 | n=810865.0 (searched)
+  [bmi] ieu-b-40  body mass index | Yengo, L 2018.0 | n=681275.0 (pinned)
+  [whradjbmi] ebi-a-GCST90025996  Waist-to-hip ratio adjusted for BMI | Barton AR 2021.0 | n=458349.0 (searched)
+  [bodyfat] ukb-b-8909  Body fat percentage | Ben Elsworth 2018.0 | n=454633.0 (searched)
+  [height] ebi-a-GCST90029008  Height | Loh PR 2018.0 | n=673878.0 (searched)
+  [ldl] ieu-b-110  LDL cholesterol | Richardson, Tom 2020.0 | n=440546.0 (pinned)
+  [hdl] ieu-b-109  HDL cholesterol | Richardson, Tom 2020.0 | n=403943.0 (pinned)
+  [tg] ieu-b-111  triglycerides | Richardson, Tom 2020.0 | n=441016.0 (pinned)
+  [t2d] ebi-a-GCST007517  Type 2 diabetes | Mahajan A 2018.0 | n=298957.0 (searched (author match))
+  [fg] ebi-a-GCST90002232  Fasting glucose | Chen J 2021.0 | n=200622.0 (searched)
+  [fi] ebi-a-GCST90002238  Fasting insulin | Chen J 2021.0 | n=151013.0 (searched)
+  [hba1c] ebi-a-GCST90014006  Glycated haemoglobin HbA1c levels (UKB data field 30750) | Mbatchou J 2021.0 | n=389889.0 (searched)
+  [egfr] ebi-a-GCST90103634  Estimated glomerular filtration rate (creatinine) | Stanzick KJ 2021.0 | n=1004040.0 (searched)
+  [urate] ieu-b-5137  Urate | Tang H 2024.0 | n=440466.0 (searched)
+  [uacr] ukb-d-30500_irnt  Microalbumin in urine | Neale lab 2018.0 | n=108706.0 (searched)
+  [na_urine] ebi-a-GCST90013989  Sodium in urine (UKB data field 30530) | Mbatchou J 2021.0 | n=396020.0 (searched)
+  [k_urine] ebi-a-GCST90013988  Potassium in urine (UKB data field 30520) | Mbatchou J 2021.0 | n=395995.0 (searched)
+  [hr] ukb-b-9270  Diagnoses - main ICD10: O68.0 Labour and delivery complicated by foetal heart rate anomaly | Ben Elsworth 2018.0 | n=463010.0 (searched)
+  [crp] ebi-a-GCST90029070  C-reactive protein levels | Said S 2022.0 | n=575531.0 (searched)
+  [alt] ebi-a-GCST90025979  Alanine aminotransferase levels | Barton AR 2021.0 | n=437724.0 (searched)
+  [alcohol] ieu-b-73  Alcoholic drinks per week | Liu, M 2019.0 | n=335394.0 (searched)
+  [smoking] ieu-b-4877  smoking initiation | Liu M 2019.0 | n=607291.0 (searched (author match))
+  [stroke_any] ebi-a-GCST005838  Stroke | Malik R 2018.0 | n=446696.0 (searched)
+  [stroke_is] ebi-a-GCST006908  Ischemic stroke | Malik R 2018.0 | n=440328.0 (searched)
+  [stroke_las] ebi-a-GCST006907  Ischemic stroke (large artery atherosclerosis) | Malik R 2018.0 | n=150765.0 (searched)
+  [stroke_ces] ebi-a-GCST006910  Ischemic stroke (cardioembolic) | Malik R 2018.0 | n=211763.0 (searched)
+  [stroke_svs] NOT FOUND - skipped
+  [ich] ebi-a-GCST90018870  Intracerebral hemorrhage | Sakaue S 2021.0 | n=473513.0 (searched)
+  [cad] ebi-a-GCST90013868  Coronary artery disease (SPA correction) | Mbatchou J 2021.0 | n=352063.0 (searched)
+  [fg_stroke] finn-b-I9_STR_EXNONE  "Stroke, excluding SAH" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_is] finn-b-I9_STR_EXH_EXNONE  "Ischaemic Stroke, excluding all haemorrhages" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_chd] finn-b-I9_CHD  Major coronary heart disease event | NA 2021.0 | n=nan (searched)
+SBP tophits: 461 (r2<0.001), 1117 (r2<0.05, 500kb)
+Keaton file: 2103 rsIDs from sheet 'Sheet1'
+MVMR instruments bmi: 501
+MVMR instruments ldl: 180
+MVMR instruments t2d: 54
+3768 unique variants to look up
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST005838: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  [1/33] ebi-a-GCST005838: 3659 associations
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006907: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  [2/33] ebi-a-GCST006907: 3717 associations
+  ebi-a-GCST006908: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+  ebi-a-GCST006908: request rejected (HTTP 400: {"message": "Please make sure N(id) * N(variant) <= 64."}
+); retrying
+=== fetch started 2026-11-19 17:54:55 ===
+token valid until 2026-11-29 13:24 UTC (9.8 days left)
+API status: {'_NOTES_1': 'Check uptime and maintenance information at https://status.opengwas.io', '_NOTES_2': 'Throttling: Please note this endpoint (/api/status) is also subject to throttling (but separate from your API allowance). Do not call this endpoint more often than necessary.', '_NOTES_3': 'STATISTICS__N_REQS_IN_PAST_HOUR is the number of requests processed (not just received) in the past hour. Non-zero number usually means OpenGWAS has been operational overall.', 'API__VERSION': '4.0.0', 'API__BUILD': '20261118.1016', 'REFERENCES__ASSOCIATIONS_POS_PREFIX_INDICES': 'Available', 'REFERENCES__PLINK': 'Available', 'SERVICES__METADATA': 'Operational', 'SERVICES__ASSOCIATIONS': 'Operational', 'SERVICES__LOGGING': 'Operational', 'SERVICES__INGESTION_PIPELINE': 'Operational', 'STATISTICS__N_DATASETS': 50174, 'STATISTICS__N_PUBLIC_DATASETS': 50055, 'STATISTICS__N_REQS_IN_PAST_HOUR': 6519}
+50066 studies in OpenGWAS
+  [sbp] ieu-b-38  systolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [dbp] ieu-b-39  diastolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [pp] ieu-b-5140  Pulse Pressure (PP) | Tang H 2024.0 | n=435478.0 (searched)
+  [bmi] ieu-b-40  body mass index | Yengo, L 2018.0 | n=681275.0 (pinned)
+  [whradjbmi] ebi-a-GCST90025996  Waist-to-hip ratio adjusted for BMI | Barton AR 2021.0 | n=458349.0 (searched)
+  [bodyfat] ukb-b-8909  Body fat percentage | Ben Elsworth 2018.0 | n=454633.0 (searched)
+  [height] ebi-a-GCST90029008  Height | Loh PR 2018.0 | n=673878.0 (searched)
+  [ldl] ieu-b-110  LDL cholesterol | Richardson, Tom 2020.0 | n=440546.0 (pinned)
+  [hdl] ieu-b-109  HDL cholesterol | Richardson, Tom 2020.0 | n=403943.0 (pinned)
+  [tg] ieu-b-111  triglycerides | Richardson, Tom 2020.0 | n=441016.0 (pinned)
+  [t2d] ieu-a-23  Type 2 diabetes | Mahajan A 2014.0 | n=110452.0 (searched (author match: Mahajan A))
+  [fg] ebi-a-GCST90002232  Fasting glucose | Chen J 2021.0 | n=200622.0 (searched)
+  [fi] ebi-a-GCST90002238  Fasting insulin | Chen J 2021.0 | n=151013.0 (searched)
+  [hba1c] ebi-a-GCST90014006  Glycated haemoglobin HbA1c levels (UKB data field 30750) | Mbatchou J 2021.0 | n=389889.0 (searched)
+  [egfr] ebi-a-GCST90103634  Estimated glomerular filtration rate (creatinine) | Stanzick KJ 2021.0 | n=1004040.0 (searched)
+  [urate] ieu-b-5137  Urate | Tang H 2024.0 | n=440466.0 (searched)
+  [uacr] ukb-d-30500_irnt  Microalbumin in urine | Neale lab 2018.0 | n=108706.0 (searched)
+  [na_urine] ebi-a-GCST90013989  Sodium in urine (UKB data field 30530) | Mbatchou J 2021.0 | n=396020.0 (searched)
+  [k_urine] ebi-a-GCST90013988  Potassium in urine (UKB data field 30520) | Mbatchou J 2021.0 | n=395995.0 (searched)
+  [hr] ukb-b-18103  Pulse rate, automated reading | Ben Elsworth 2018.0 | n=436424.0 (searched)
+  [crp] ebi-a-GCST90029070  C-reactive protein levels | Said S 2022.0 | n=575531.0 (searched)
+  [alt] ebi-a-GCST90025979  Alanine aminotransferase levels | Barton AR 2021.0 | n=437724.0 (searched)
+  [alcohol] ieu-b-73  Alcoholic drinks per week | Liu, M 2019.0 | n=335394.0 (searched)
+  [smoking] ieu-b-4877  smoking initiation | Liu M 2019.0 | n=607291.0 (searched (author match: Liu M))
+  [stroke_any] ebi-a-GCST005838  Stroke | Malik R 2018.0 | n=446696.0 (searched (author match: Malik R))
+  [stroke_is] ebi-a-GCST006908  Ischemic stroke | Malik R 2018.0 | n=440328.0 (searched (author match: Malik R))
+  [stroke_las] ebi-a-GCST006907  Ischemic stroke (large artery atherosclerosis) | Malik R 2018.0 | n=150765.0 (searched (author match: Malik R))
+  [stroke_ces] ebi-a-GCST006910  Ischemic stroke (cardioembolic) | Malik R 2018.0 | n=211763.0 (searched (author match: Malik R))
+  [stroke_svs] ebi-a-GCST006909  Ischemic stroke (small-vessel) | Malik R 2018.0 | n=198048.0 (searched (author match: Malik R))
+  [ich] ebi-a-GCST90018870  Intracerebral hemorrhage | Sakaue S 2021.0 | n=473513.0 (searched)
+  [cad] ebi-a-GCST003116  Coronary artery disease | Nikpay M 2015.0 | n=141217.0 (searched (author match: Nikpay M))
+  [fg_stroke] finn-b-I9_STR_EXNONE  "Stroke, excluding SAH" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_is] finn-b-I9_STR_EXH_EXNONE  "Ischaemic Stroke, excluding all haemorrhages" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_chd] finn-b-I9_CHD  Major coronary heart disease event | NA 2021.0 | n=nan (searched)
+SBP tophits: 461 (r2<0.001), 1117 (r2<0.05, 500kb)
+Keaton file: 2103 rsIDs from sheet 'Sheet1'
+MVMR instruments bmi: 501
+MVMR instruments ldl: 180
+MVMR instruments t2d: 34
+3755 unique variants to look up
+=== fetch started 2026-11-19 21:08:46 ===
+token valid until 2026-11-29 13:24 UTC (9.7 days left)
+API status: {'_NOTES_1': 'Check uptime and maintenance information at https://status.opengwas.io', '_NOTES_2': 'Throttling: Please note this endpoint (/api/status) is also subject to throttling (but separate from your API allowance). Do not call this endpoint more often than necessary.', '_NOTES_3': 'STATISTICS__N_REQS_IN_PAST_HOUR is the number of requests processed (not just received) in the past hour. Non-zero number usually means OpenGWAS has been operational overall.', 'API__VERSION': '4.0.0', 'API__BUILD': '20261118.1016', 'REFERENCES__ASSOCIATIONS_POS_PREFIX_INDICES': 'Available', 'REFERENCES__PLINK': 'Available', 'SERVICES__METADATA': 'Operational', 'SERVICES__ASSOCIATIONS': 'Operational', 'SERVICES__LOGGING': 'Operational', 'SERVICES__INGESTION_PIPELINE': 'Operational', 'STATISTICS__N_DATASETS': 50174, 'STATISTICS__N_PUBLIC_DATASETS': 50055, 'STATISTICS__N_REQS_IN_PAST_HOUR': 20404}
+50066 studies in OpenGWAS
+  [sbp] ieu-b-38  systolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [dbp] ieu-b-39  diastolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [pp] ieu-b-5140  Pulse Pressure (PP) | Tang H 2024.0 | n=435478.0 (searched)
+  [bmi] ieu-b-40  body mass index | Yengo, L 2018.0 | n=681275.0 (pinned)
+  [whradjbmi] ebi-a-GCST90025996  Waist-to-hip ratio adjusted for BMI | Barton AR 2021.0 | n=458349.0 (searched)
+  [bodyfat] ukb-b-8909  Body fat percentage | Ben Elsworth 2018.0 | n=454633.0 (searched)
+  [height] ebi-a-GCST90029008  Height | Loh PR 2018.0 | n=673878.0 (searched)
+  [ldl] ieu-b-110  LDL cholesterol | Richardson, Tom 2020.0 | n=440546.0 (pinned)
+  [hdl] ieu-b-109  HDL cholesterol | Richardson, Tom 2020.0 | n=403943.0 (pinned)
+  [tg] ieu-b-111  triglycerides | Richardson, Tom 2020.0 | n=441016.0 (pinned)
+  [t2d] ebi-a-GCST90029024  Type 2 diabetes | Loh PR 2018.0 | n=468298.0 (searched)
+  [fg] ebi-a-GCST90002232  Fasting glucose | Chen J 2021.0 | n=200622.0 (searched)
+  [fi] ebi-a-GCST90002238  Fasting insulin | Chen J 2021.0 | n=151013.0 (searched)
+  [hba1c] ebi-a-GCST90014006  Glycated haemoglobin HbA1c levels (UKB data field 30750) | Mbatchou J 2021.0 | n=389889.0 (searched)
+  [egfr] ebi-a-GCST90103634  Estimated glomerular filtration rate (creatinine) | Stanzick KJ 2021.0 | n=1004040.0 (searched)
+  [urate] ieu-b-5137  Urate | Tang H 2024.0 | n=440466.0 (searched)
+  [uacr] ukb-d-30500_irnt  Microalbumin in urine | Neale lab 2018.0 | n=108706.0 (searched)
+  [na_urine] ebi-a-GCST90013989  Sodium in urine (UKB data field 30530) | Mbatchou J 2021.0 | n=396020.0 (searched)
+  [k_urine] ebi-a-GCST90013988  Potassium in urine (UKB data field 30520) | Mbatchou J 2021.0 | n=395995.0 (searched)
+  [hr] ukb-b-18103  Pulse rate, automated reading | Ben Elsworth 2018.0 | n=436424.0 (searched)
+  [crp] ebi-a-GCST90029070  C-reactive protein levels | Said S 2022.0 | n=575531.0 (searched)
+  [alt] ebi-a-GCST90025979  Alanine aminotransferase levels | Barton AR 2021.0 | n=437724.0 (searched)
+  [alcohol] ieu-b-73  Alcoholic drinks per week | Liu, M 2019.0 | n=335394.0 (searched)
+  [smoking] ieu-b-4877  smoking initiation | Liu M 2019.0 | n=607291.0 (searched (author match: Liu M))
+  [stroke_any] ebi-a-GCST005838  Stroke | Malik R 2018.0 | n=446696.0 (searched (author match: Malik R))
+  [stroke_is] ebi-a-GCST006908  Ischemic stroke | Malik R 2018.0 | n=440328.0 (searched (author match: Malik R))
+  [stroke_las] ebi-a-GCST006907  Ischemic stroke (large artery atherosclerosis) | Malik R 2018.0 | n=150765.0 (searched (author match: Malik R))
+  [stroke_ces] ebi-a-GCST006910  Ischemic stroke (cardioembolic) | Malik R 2018.0 | n=211763.0 (searched (author match: Malik R))
+  [stroke_svs] ebi-a-GCST006909  Ischemic stroke (small-vessel) | Malik R 2018.0 | n=198048.0 (searched (author match: Malik R))
+  [ich] ebi-a-GCST90018870  Intracerebral hemorrhage | Sakaue S 2021.0 | n=473513.0 (searched)
+  [cad] ebi-a-GCST003116  Coronary artery disease | Nikpay M 2015.0 | n=141217.0 (searched (author match: Nikpay M))
+  [fg_stroke] finn-b-I9_STR_EXNONE  "Stroke, excluding SAH" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_is] finn-b-I9_STR_EXH_EXNONE  "Ischaemic Stroke, excluding all haemorrhages" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_chd] finn-b-I9_CHD  Major coronary heart disease event | NA 2021.0 | n=nan (searched)
+SBP tophits: 461 (r2<0.001), 1117 (r2<0.05, 500kb)
+Keaton file: 2103 rsIDs from sheet 'Sheet1'
+MVMR instruments bmi: 501
+MVMR instruments ldl: 180
+MVMR instruments t2d: 67
+3782 unique variants to look up
+Streaming 34 study files, 3 at a time (checkpoint per study in /content/drive/MyDrive/bp-mechanisms-mr/data/raw/cache)
+  [1/34] ebi-a-GCST005838: 3648/3782 variants found (3.5% missing), downloaded in 1.3 min
+  [2/34] ebi-a-GCST006907: 3725/3782 variants found (1.5% missing), downloaded in 1.4 min
+  [3/34] ebi-a-GCST003116: 3716/3782 variants found (1.7% missing), downloaded in 1.5 min
+  [4/34] ebi-a-GCST006908: 3721/3782 variants found (1.6% missing), downloaded in 1.4 min
+  [5/34] ebi-a-GCST006909: 3726/3782 variants found (1.5% missing), downloaded in 1.4 min
+  [6/34] ebi-a-GCST006910: 3723/3782 variants found (1.6% missing), downloaded in 1.4 min
+  [7/34] ebi-a-GCST90013988: 3760/3782 variants found (0.6% missing), downloaded in 1.7 min
+  [8/34] ebi-a-GCST90013989: 3760/3782 variants found (0.6% missing), downloaded in 1.7 min
+  [9/34] ebi-a-GCST90002232: 3709/3782 variants found (1.9% missing), downloaded in 4.8 min
+  [10/34] ebi-a-GCST90002238: 3719/3782 variants found (1.7% missing), downloaded in 4.7 min
+  [11/34] ebi-a-GCST90014006: 3757/3782 variants found (0.7% missing), downloaded in 1.6 min
+  [12/34] ebi-a-GCST90025979: 690/3782 variants found (81.8% missing), downloaded in 0.8 min
+  [13/34] ebi-a-GCST90025996: 690/3782 variants found (81.8% missing), downloaded in 0.8 min
+  [14/34] ebi-a-GCST90029008: 3747/3782 variants found (0.9% missing), downloaded in 2.2 min
+  [15/34] ebi-a-GCST90029024: 3747/3782 variants found (0.9% missing), downloaded in 2.2 min
+  [16/34] ebi-a-GCST90018870: 3755/3782 variants found (0.7% missing), downloaded in 4.2 min
+  [17/34] ebi-a-GCST90029070: 3678/3782 variants found (2.7% missing), downloaded in 1.5 min
+  [18/34] ebi-a-GCST90103634: 3488/3782 variants found (7.8% missing), downloaded in 1.2 min
+  [19/34] finn-b-I9_CHD: 3612/3782 variants found (4.5% missing), downloaded in 2.6 min
+  [20/34] finn-b-I9_STR_EXNONE: 3612/3782 variants found (4.5% missing), downloaded in 2.8 min
+  [21/34] finn-b-I9_STR_EXH_EXNONE: 3612/3782 variants found (4.5% missing), downloaded in 2.8 min
+  [22/34] ieu-b-109: 3583/3782 variants found (5.3% missing), downloaded in 2.2 min
+  [23/34] ieu-b-110: 3583/3782 variants found (5.3% missing), downloaded in 2.2 min
+  [24/34] ieu-b-111: 3583/3782 variants found (5.3% missing), downloaded in 2.3 min
+  [25/34] ieu-b-40: 1727/3782 variants found (54.3% missing), downloaded in 0.4 min
+  [26/34] ieu-b-38: 3489/3782 variants found (7.7% missing), downloaded in 1.2 min
+  [27/34] ieu-b-39: 3499/3782 variants found (7.5% missing), downloaded in 1.2 min
+  [28/34] ieu-b-4877: 3516/3782 variants found (7.0% missing), downloaded in 2.1 min
+  [29/34] ieu-b-5137: 3777/3782 variants found (0.1% missing), downloaded in 2.3 min
+  [30/34] ieu-b-5140: 3777/3782 variants found (0.1% missing), downloaded in 2.2 min
+  [31/34] ukb-b-18103: 3755/3782 variants found (0.7% missing), downloaded in 1.8 min
+  [32/34] ieu-b-73: 3517/3782 variants found (7.0% missing), downloaded in 2.3 min
+  [33/34] ukb-b-8909: 3755/3782 variants found (0.7% missing), downloaded in 1.7 min
+  [34/34] ukb-d-30500_irnt: 3758/3782 variants found (0.6% missing), downloaded in 0.8 min
+associations.csv.gz: 117061 rows
+clump r2<0.001, 10000kb: 564 kept of 2798 [LD clumping (1000G EUR)]
+clump r2<0.05, 500kb: 2079 kept of 2798 [LD clumping (1000G EUR)]
+Done. Zip data/raw (you can leave out data/raw/cache) and send it back.
+=== fetch started 2026-11-20 15:06:01 ===
+token valid until 2026-11-29 13:24 UTC (8.9 days left)
+API status: {'_NOTES_1': 'Check uptime and maintenance information at https://status.opengwas.io', '_NOTES_2': 'Throttling: Please note this endpoint (/api/status) is also subject to throttling (but separate from your API allowance). Do not call this endpoint more often than necessary.', '_NOTES_3': 'STATISTICS__N_REQS_IN_PAST_HOUR is the number of requests processed (not just received) in the past hour. Non-zero number usually means OpenGWAS has been operational overall.', 'API__VERSION': '4.0.0', 'API__BUILD': '20261118.1016', 'REFERENCES__ASSOCIATIONS_POS_PREFIX_INDICES': 'Available', 'REFERENCES__PLINK': 'Available', 'SERVICES__METADATA': 'Operational', 'SERVICES__ASSOCIATIONS': 'Operational', 'SERVICES__LOGGING': 'Operational', 'SERVICES__INGESTION_PIPELINE': 'Operational', 'STATISTICS__N_DATASETS': 50174, 'STATISTICS__N_PUBLIC_DATASETS': 50055, 'STATISTICS__N_REQS_IN_PAST_HOUR': 7445}
+50066 studies in OpenGWAS
+  [sbp] ieu-b-38  systolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [dbp] ieu-b-39  diastolic blood pressure | Evangelou, E 2018.0 | n=757601.0 (pinned)
+  [pp] ieu-b-5140  Pulse Pressure (PP) | Tang H 2024.0 | n=435478.0 (searched)
+  [bmi] ukb-b-19953  Body mass index (BMI) | Ben Elsworth 2018.0 | n=461460.0 (pinned)
+  [whradjbmi] ebi-a-GCST90025996  Waist-to-hip ratio adjusted for BMI | Barton AR 2021.0 | n=458349.0 (searched)
+  [bodyfat] ukb-b-8909  Body fat percentage | Ben Elsworth 2018.0 | n=454633.0 (searched)
+  [height] ebi-a-GCST90029008  Height | Loh PR 2018.0 | n=673878.0 (searched)
+  [ldl] ieu-b-110  LDL cholesterol | Richardson, Tom 2020.0 | n=440546.0 (pinned)
+  [hdl] ieu-b-109  HDL cholesterol | Richardson, Tom 2020.0 | n=403943.0 (pinned)
+  [tg] ieu-b-111  triglycerides | Richardson, Tom 2020.0 | n=441016.0 (pinned)
+  [t2d] ebi-a-GCST006867  Type 2 diabetes | Xue A 2018.0 | n=655666.0 (searched)
+  [fg] ebi-a-GCST90002232  Fasting glucose | Chen J 2021.0 | n=200622.0 (searched)
+  [fi] ebi-a-GCST90002238  Fasting insulin | Chen J 2021.0 | n=151013.0 (searched)
+  [hba1c] ebi-a-GCST90014006  Glycated haemoglobin HbA1c levels (UKB data field 30750) | Mbatchou J 2021.0 | n=389889.0 (searched)
+  [egfr] ebi-a-GCST90103634  Estimated glomerular filtration rate (creatinine) | Stanzick KJ 2021.0 | n=1004040.0 (searched)
+  [urate] ieu-b-5137  Urate | Tang H 2024.0 | n=440466.0 (searched)
+  [uacr] ukb-d-30500_irnt  Microalbumin in urine | Neale lab 2018.0 | n=108706.0 (searched)
+  [na_urine] ebi-a-GCST90013989  Sodium in urine (UKB data field 30530) | Mbatchou J 2021.0 | n=396020.0 (searched)
+  [k_urine] ebi-a-GCST90013988  Potassium in urine (UKB data field 30520) | Mbatchou J 2021.0 | n=395995.0 (searched)
+  [hr] ukb-b-18103  Pulse rate, automated reading | Ben Elsworth 2018.0 | n=436424.0 (searched)
+  [crp] ebi-a-GCST90029070  C-reactive protein levels | Said S 2022.0 | n=575531.0 (searched)
+  [alt] ebi-a-GCST90025979  Alanine aminotransferase levels | Barton AR 2021.0 | n=437724.0 (searched)
+  [alcohol] ieu-b-73  Alcoholic drinks per week | Liu, M 2019.0 | n=335394.0 (searched)
+  [smoking] ieu-b-4877  smoking initiation | Liu M 2019.0 | n=607291.0 (searched (author match: Liu M))
+  [stroke_any] ebi-a-GCST005838  Stroke | Malik R 2018.0 | n=446696.0 (searched (author match: Malik R))
+  [stroke_is] ebi-a-GCST006908  Ischemic stroke | Malik R 2018.0 | n=440328.0 (searched (author match: Malik R))
+  [stroke_las] ebi-a-GCST006907  Ischemic stroke (large artery atherosclerosis) | Malik R 2018.0 | n=150765.0 (searched (author match: Malik R))
+  [stroke_ces] ebi-a-GCST006910  Ischemic stroke (cardioembolic) | Malik R 2018.0 | n=211763.0 (searched (author match: Malik R))
+  [stroke_svs] ebi-a-GCST006909  Ischemic stroke (small-vessel) | Malik R 2018.0 | n=198048.0 (searched (author match: Malik R))
+  [ich] ebi-a-GCST90018870  Intracerebral hemorrhage | Sakaue S 2021.0 | n=473513.0 (searched)
+  [cad] ebi-a-GCST003116  Coronary artery disease | Nikpay M 2015.0 | n=141217.0 (searched (author match: Nikpay M))
+  [fg_stroke] finn-b-I9_STR_EXNONE  "Stroke, excluding SAH" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_is] finn-b-I9_STR_EXH_EXNONE  "Ischaemic Stroke, excluding all haemorrhages" (no controls excluded) | NA 2021.0 | n=nan (searched)
+  [fg_chd] finn-b-I9_CHD  Major coronary heart disease event | NA 2021.0 | n=nan (searched)
+SBP tophits: 461 (r2<0.001), 1117 (r2<0.05, 500kb)
+Keaton file: 2103 rsIDs from sheet 'Sheet1'
+MVMR instruments bmi (ukb-b-19953): 458
+MVMR instruments ldl (ieu-b-110): 180
+MVMR instruments t2d (ebi-a-GCST006867): 118
+3788 unique variants to look up (3054 BP variants, 734 MVMR-only)
+Fetching study files, 3 at a time; full files kept in /content/drive/MyDrive/bp-mechanisms-mr/data/raw/files; one extract per study in /content/drive/MyDrive/bp-mechanisms-mr/data/raw/cache. A study missing > 20% of the BP variants is replaced by the next candidate (up to 4 per trait).
+round 1: 34 studies
+  [1/34] ebi-a-GCST006867: 2132/3054 BP variants found (30.2% missing), downloaded, 0.8 min
+  [2/34] ebi-a-GCST005838: 2957/3054 BP variants found (3.2% missing), downloaded (+514 new variants), 1.1 min
+  [3/34] ebi-a-GCST003116: 3015/3054 BP variants found (1.3% missing), downloaded (+514 new variants), 1.2 min
+  [4/34] ebi-a-GCST006907: 3025/3054 BP variants found (0.9% missing), downloaded (+514 new variants), 1.6 min
+  [5/34] ebi-a-GCST006908: 3020/3054 BP variants found (1.1% missing), downloaded (+514 new variants), 1.4 min
+  [6/34] ebi-a-GCST90002232: 3003/3054 BP variants found (1.7% missing), extract already saved
+  [7/34] ebi-a-GCST90002238: 3013/3054 BP variants found (1.3% missing), extract already saved
+  [8/34] ebi-a-GCST90013988: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [9/34] ebi-a-GCST006909: 3024/3054 BP variants found (1.0% missing), downloaded (+514 new variants), 1.4 min
+  [10/34] ebi-a-GCST90013989: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [11/34] ebi-a-GCST90014006: 3041/3054 BP variants found (0.4% missing), extract already saved
+  [12/34] ebi-a-GCST90025979: 551/3054 BP variants found (82.0% missing), extract already saved
+  [13/34] ebi-a-GCST90025996: 551/3054 BP variants found (82.0% missing), extract already saved
+  [14/34] ebi-a-GCST90029008: 3044/3054 BP variants found (0.3% missing), extract already saved
+  [15/34] ebi-a-GCST90029070: 2970/3054 BP variants found (2.8% missing), extract already saved
+  [16/34] ebi-a-GCST90103634: 2836/3054 BP variants found (7.1% missing), extract already saved
+  [17/34] ebi-a-GCST006910: 3024/3054 BP variants found (1.0% missing), downloaded (+514 new variants), 1.1 min
+  [18/34] finn-b-I9_CHD: 2911/3054 BP variants found (4.7% missing), downloaded (+514 new variants), 2.7 min
+  [19/34] finn-b-I9_STR_EXH_EXNONE: 2911/3054 BP variants found (4.7% missing), downloaded (+514 new variants), 2.6 min
+  [20/34] ieu-b-109: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [21/34] ebi-a-GCST90018870: 3038/3054 BP variants found (0.5% missing), downloaded (+514 new variants), 4.0 min
+  [22/34] ieu-b-111: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [23/34] ieu-b-38: 2798/3054 BP variants found (8.4% missing), downloaded (+514 new variants), 1.3 min
+  [24/34] ieu-b-39: 2807/3054 BP variants found (8.1% missing), extract already saved
+  [25/34] ieu-b-4877: 2818/3054 BP variants found (7.7% missing), extract already saved
+  [26/34] ieu-b-5137: 3050/3054 BP variants found (0.1% missing), extract already saved
+  [27/34] ieu-b-5140: 3050/3054 BP variants found (0.1% missing), extract already saved
+  [28/34] ieu-b-73: 2821/3054 BP variants found (7.6% missing), extract already saved
+  [29/34] ukb-b-18103: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [30/34] finn-b-I9_STR_EXNONE: 2911/3054 BP variants found (4.7% missing), downloaded (+514 new variants), 2.7 min
+  [31/34] ukb-b-8909: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [32/34] ukb-d-30500_irnt: 3038/3054 BP variants found (0.5% missing), extract already saved
+  [33/34] ieu-b-110: 2858/3054 BP variants found (6.4% missing), downloaded (+514 new variants), 2.0 min
+  [34/34] ukb-b-19953: 3051/3054 BP variants found (0.1% missing), downloaded, 1.0 min
+  [whradjbmi] ebi-a-GCST90025996: 82% of BP variants missing -> trying ieu-a-79 Waist-to-hip ratio | Shungin D 2015.0 | n=210082.0
+  [t2d] ebi-a-GCST006867: 30.2% of BP variants missing -> trying ebi-a-GCST90018926 Type 2 diabetes | Sakaue S 2021.0 | n=490089.0
+  [alt] ebi-a-GCST90025979: 82% of BP variants missing -> trying ebi-a-GCST90013992 Alanine aminotransferase levels (UKB data field 30620) | Mbatchou J 2021.0 | n=389733.0
+SBP tophits: 461 (r2<0.001), 1117 (r2<0.05, 500kb)
+Keaton file: 2103 rsIDs from sheet 'Sheet1'
+MVMR instruments bmi (ukb-b-19953): 458
+MVMR instruments ldl (ieu-b-110): 180
+MVMR instruments t2d (ebi-a-GCST90018926): 185
+3845 unique variants to look up (3054 BP variants, 791 MVMR-only)
+round 2: 34 studies
+  [1/34] ebi-a-GCST005838: 2957/3054 BP variants found (3.2% missing), file already on disk (+154 new variants), 1.1 min
+  [2/34] ebi-a-GCST006907: 3025/3054 BP variants found (0.9% missing), file already on disk (+154 new variants), 1.2 min
+  [3/34] ebi-a-GCST003116: 3015/3054 BP variants found (1.3% missing), file already on disk (+154 new variants), 1.3 min
+  [4/34] ebi-a-GCST006908: 3020/3054 BP variants found (1.1% missing), file already on disk (+154 new variants), 1.2 min
+  [5/34] ebi-a-GCST90002232: 3003/3054 BP variants found (1.7% missing), extract already saved
+  [6/34] ebi-a-GCST90002238: 3013/3054 BP variants found (1.3% missing), extract already saved
+  [7/34] ebi-a-GCST90013988: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [8/34] ebi-a-GCST90013989: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [9/34] ebi-a-GCST006909: 3024/3054 BP variants found (1.0% missing), file already on disk (+154 new variants), 1.2 min
+  [10/34] ebi-a-GCST90014006: 3041/3054 BP variants found (0.4% missing), extract already saved
+  [11/34] ebi-a-GCST006910: 3024/3054 BP variants found (1.0% missing), file already on disk (+154 new variants), 1.1 min
+  [12/34] ebi-a-GCST90013992: 3043/3054 BP variants found (0.4% missing), downloaded, 1.7 min
+  [13/34] ebi-a-GCST90029008: 3044/3054 BP variants found (0.3% missing), extract already saved
+  [14/34] ebi-a-GCST90029070: 2970/3054 BP variants found (2.8% missing), extract already saved
+  [15/34] ebi-a-GCST90103634: 2836/3054 BP variants found (7.1% missing), extract already saved
+  [16/34] ebi-a-GCST90018870: 3038/3054 BP variants found (0.5% missing), file already on disk (+154 new variants), 3.8 min
+  [17/34] finn-b-I9_CHD: 2911/3054 BP variants found (4.7% missing), file already on disk (+154 new variants), 2.5 min
+  [18/34] ebi-a-GCST90018926: 3029/3054 BP variants found (0.8% missing), downloaded, 4.6 min
+  [19/34] ieu-a-79: 1299/3054 BP variants found (57.5% missing), downloaded, 0.5 min
+  [20/34] ieu-b-109: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [21/34] finn-b-I9_STR_EXH_EXNONE: 2911/3054 BP variants found (4.7% missing), file already on disk (+154 new variants), 2.5 min
+  [22/34] ieu-b-111: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [23/34] finn-b-I9_STR_EXNONE: 2911/3054 BP variants found (4.7% missing), file already on disk (+154 new variants), 2.5 min
+  [24/34] ieu-b-39: 2807/3054 BP variants found (8.1% missing), extract already saved
+  [25/34] ieu-b-4877: 2818/3054 BP variants found (7.7% missing), extract already saved
+  [26/34] ieu-b-5137: 3050/3054 BP variants found (0.1% missing), extract already saved
+  [27/34] ieu-b-5140: 3050/3054 BP variants found (0.1% missing), extract already saved
+  [28/34] ieu-b-73: 2821/3054 BP variants found (7.6% missing), extract already saved
+  [29/34] ukb-b-18103: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [30/34] ieu-b-110: 2858/3054 BP variants found (6.4% missing), file already on disk (+154 new variants), 2.0 min
+  [31/34] ukb-b-8909: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [32/34] ukb-d-30500_irnt: 3038/3054 BP variants found (0.5% missing), extract already saved
+  [33/34] ieu-b-38: 2798/3054 BP variants found (8.4% missing), file already on disk (+154 new variants), 1.0 min
+  [34/34] ukb-b-19953: 3051/3054 BP variants found (0.1% missing), file already on disk (+163 new variants), 0.9 min
+  [whradjbmi] ieu-a-79: 57.5% of BP variants missing -> trying ieu-a-81 Waist-to-hip ratio | Shungin D 2015.0 | n=116740.0
+round 3: 34 studies
+  [1/34] ebi-a-GCST003116: 3015/3054 BP variants found (1.3% missing), extract already saved
+  [2/34] ebi-a-GCST006907: 3025/3054 BP variants found (0.9% missing), extract already saved
+  [3/34] ebi-a-GCST005838: 2957/3054 BP variants found (3.2% missing), extract already saved
+  [4/34] ebi-a-GCST006908: 3020/3054 BP variants found (1.1% missing), extract already saved
+  [5/34] ebi-a-GCST006909: 3024/3054 BP variants found (1.0% missing), extract already saved
+  [6/34] ebi-a-GCST90002232: 3003/3054 BP variants found (1.7% missing), extract already saved
+  [7/34] ebi-a-GCST90002238: 3013/3054 BP variants found (1.3% missing), extract already saved
+  [8/34] ebi-a-GCST006910: 3024/3054 BP variants found (1.0% missing), extract already saved
+  [9/34] ebi-a-GCST90013988: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [10/34] ebi-a-GCST90013989: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [11/34] ebi-a-GCST90013992: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [12/34] ebi-a-GCST90014006: 3041/3054 BP variants found (0.4% missing), extract already saved
+  [13/34] ebi-a-GCST90018870: 3038/3054 BP variants found (0.5% missing), extract already saved
+  [14/34] ebi-a-GCST90018926: 3029/3054 BP variants found (0.8% missing), extract already saved
+  [15/34] ebi-a-GCST90029008: 3044/3054 BP variants found (0.3% missing), extract already saved
+  [16/34] ebi-a-GCST90029070: 2970/3054 BP variants found (2.8% missing), extract already saved
+  [17/34] ebi-a-GCST90103634: 2836/3054 BP variants found (7.1% missing), extract already saved
+  [18/34] finn-b-I9_CHD: 2911/3054 BP variants found (4.7% missing), extract already saved
+  [19/34] finn-b-I9_STR_EXNONE: 2911/3054 BP variants found (4.7% missing), extract already saved
+  [20/34] finn-b-I9_STR_EXH_EXNONE: 2911/3054 BP variants found (4.7% missing), extract already saved
+  [21/34] ieu-b-109: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [22/34] ieu-b-110: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [23/34] ieu-b-111: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [24/34] ieu-b-38: 2798/3054 BP variants found (8.4% missing), extract already saved
+  [25/34] ieu-b-39: 2807/3054 BP variants found (8.1% missing), extract already saved
+  [26/34] ieu-b-5137: 3050/3054 BP variants found (0.1% missing), extract already saved
+  [27/34] ieu-b-4877: 2818/3054 BP variants found (7.7% missing), extract already saved
+  [28/34] ieu-b-5140: 3050/3054 BP variants found (0.1% missing), extract already saved
+  [29/34] ieu-b-73: 2821/3054 BP variants found (7.6% missing), extract already saved
+  [30/34] ukb-b-18103: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [31/34] ukb-b-19953: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [32/34] ukb-b-8909: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [33/34] ukb-d-30500_irnt: 3038/3054 BP variants found (0.5% missing), extract already saved
+  [34/34] ieu-a-81: 1278/3054 BP variants found (58.2% missing), downloaded, 0.2 min
+  [whradjbmi] ieu-a-81: 58.2% of BP variants missing -> trying ieu-a-83 Waist-to-hip ratio | Shungin D 2015.0 | n=93478.0
+round 4: 34 studies
+  [1/34] ebi-a-GCST005838: 2957/3054 BP variants found (3.2% missing), extract already saved
+  [2/34] ebi-a-GCST003116: 3015/3054 BP variants found (1.3% missing), extract already saved
+  [3/34] ebi-a-GCST006907: 3025/3054 BP variants found (0.9% missing), extract already saved
+  [4/34] ebi-a-GCST006909: 3024/3054 BP variants found (1.0% missing), extract already saved
+  [5/34] ebi-a-GCST006908: 3020/3054 BP variants found (1.1% missing), extract already saved
+  [6/34] ebi-a-GCST006910: 3024/3054 BP variants found (1.0% missing), extract already saved
+  [7/34] ebi-a-GCST90002232: 3003/3054 BP variants found (1.7% missing), extract already saved
+  [8/34] ebi-a-GCST90002238: 3013/3054 BP variants found (1.3% missing), extract already saved
+  [9/34] ebi-a-GCST90013988: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [10/34] ebi-a-GCST90013989: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [11/34] ebi-a-GCST90013992: 3043/3054 BP variants found (0.4% missing), extract already saved
+  [12/34] ebi-a-GCST90014006: 3041/3054 BP variants found (0.4% missing), extract already saved
+  [13/34] ebi-a-GCST90018926: 3029/3054 BP variants found (0.8% missing), extract already saved
+  [14/34] ebi-a-GCST90018870: 3038/3054 BP variants found (0.5% missing), extract already saved
+  [15/34] ebi-a-GCST90029008: 3044/3054 BP variants found (0.3% missing), extract already saved
+  [16/34] ebi-a-GCST90029070: 2970/3054 BP variants found (2.8% missing), extract already saved
+  [17/34] ebi-a-GCST90103634: 2836/3054 BP variants found (7.1% missing), extract already saved
+  [18/34] finn-b-I9_CHD: 2911/3054 BP variants found (4.7% missing), extract already saved
+  [19/34] finn-b-I9_STR_EXH_EXNONE: 2911/3054 BP variants found (4.7% missing), extract already saved
+  [20/34] finn-b-I9_STR_EXNONE: 2911/3054 BP variants found (4.7% missing), extract already saved
+  [21/34] ieu-b-109: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [22/34] ieu-b-110: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [23/34] ieu-b-111: 2858/3054 BP variants found (6.4% missing), extract already saved
+  [24/34] ieu-b-38: 2798/3054 BP variants found (8.4% missing), extract already saved
+  [25/34] ieu-b-39: 2807/3054 BP variants found (8.1% missing), extract already saved
+  [26/34] ieu-b-4877: 2818/3054 BP variants found (7.7% missing), extract already saved
+  [27/34] ieu-b-5137: 3050/3054 BP variants found (0.1% missing), extract already saved
+  [28/34] ieu-b-5140: 3050/3054 BP variants found (0.1% missing), extract already saved
+  [29/34] ieu-b-73: 2821/3054 BP variants found (7.6% missing), extract already saved
+  [30/34] ukb-b-18103: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [31/34] ukb-b-19953: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [32/34] ukb-b-8909: 3051/3054 BP variants found (0.1% missing), extract already saved
+  [33/34] ukb-d-30500_irnt: 3038/3054 BP variants found (0.5% missing), extract already saved
+  [34/34] ieu-a-83: 1181/3054 BP variants found (61.3% missing), downloaded, 0.1 min
+  [whradjbmi] ieu-a-83: 61.3% of BP variants missing; no usable alternative - trait DROPPED
+associations.csv.gz: 128664 rows
+clump r2<0.001, 10000kb: 564 kept of 2798 [LD clumping (1000G EUR)]
+clump r2<0.05, 500kb: 2079 kept of 2798 [LD clumping (1000G EUR)]
+Done. Zip data/raw (you can leave out data/raw/cache) and send it back.

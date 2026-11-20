@@ -1,0 +1,10 @@
+raw: data/raw
+128479 association rows, 4450 variants
+harmonised rows: 116497 (11982 dropped: allele mismatch or ambiguous palindromes)
+581 variants dropped: |z_SBP| < 4.0 or absent in the SBP GWAS
+BP variants: 3054 candidates; 1498 independent at r2<0.05 (clustering set)
+start: 1498 variants x 23 traits
+variants kept with <= 20% missing traits: 1490
+final: 1490 variants x 23 traits; 223 missing cells set to 0
+clustering input: per_sbp (22 traits)
+MR instruments (in clustering set, r2<0.001, F>=10): 363

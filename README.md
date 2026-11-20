@@ -19,6 +19,16 @@ It adds three things that paper does not report:
 
 Everything uses public summary statistics. No individual-level data is needed.
 
+## Results (run of 20 Nov 2026)
+
+Figures and conclusions on one PDF: [`docs/BP_mechanisms_MR_figures.pdf`](docs/BP_mechanisms_MR_figures.pdf). Full outputs: [`results/`](results/) (summary in [`results/07_report/summary.md`](results/07_report/summary.md)); studies used: [`data/raw/manifest.csv`](data/raw/manifest.csv).
+
+* **Overall:** OR 1.36 per 10 mmHg higher SBP for both any stroke and CAD (large-artery stroke 1.68, cardioembolic 1.18).
+* **Clusters:** 1,490 variants × 22 traits. k-means (K = 6) gave 4 clusters that passed the pre-set stability gate (bootstrap Jaccard ≥ 0.6); Ward clusters were unstable at every K (Jaccard 0.20–0.50), so k-means is primary and Ward/bNMF are sensitivity analyses.
+* **Between-cluster test:** no significant difference for any outcome (smallest permutation p = 0.065; CAD p = 0.90).
+* **Leads, not findings:** high-pulse-pressure variants give OR 2.41 (1.83–3.18) for large-artery stroke vs 1.30 for CAD (robust to MVMR and weighted median; attenuated by Steiger filtering). Lean/high-HDL variants raise CAD (OR 1.30) but not stroke (1.02–1.05 under every estimator); that cluster sits just below the stability gate.
+* **Data notes:** stroke outcomes are MEGASTROKE (Malik 2018) and CAD is Nikpay 2015, the largest available in OpenGWAS; WHR adjusted for BMI was dropped (no dense European GWAS in OpenGWAS).
+
 ## Run it on Kaggle
 
 1. Upload this folder as a Kaggle Dataset. Optionally add the Keaton et al. 2024 Supplementary Tables `.xlsx` to the same dataset.

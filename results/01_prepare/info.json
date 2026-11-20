@@ -1,0 +1,31 @@
+{
+  "scale": 10.0,
+  "label": "per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253)",
+  "n_cluster_variants": 1490,
+  "traits": [
+    "sbp",
+    "ldl",
+    "tg",
+    "hdl",
+    "height",
+    "fg",
+    "egfr",
+    "hr",
+    "alcohol",
+    "crp",
+    "hba1c",
+    "pp",
+    "dbp",
+    "t2d",
+    "bmi",
+    "urate",
+    "alt",
+    "bodyfat",
+    "fi",
+    "smoking",
+    "na_urine",
+    "k_urine",
+    "uacr"
+  ],
+  "n_mr_instruments": 363
+}

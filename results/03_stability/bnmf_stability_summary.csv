@@ -1,0 +1,12 @@
+cluster,n_variants,name,run_coassign_within,noise_keep_prob,goes_to_mr
+c0,198,"bmi-, bodyfat-, hdl+",0.8165761,0.6492424242424242,True
+c1,103,"bmi+, bodyfat+, crp+",0.8281679,0.3320388349514564,False
+c2,277,"pp+, dbp-, hr-",0.8748751,0.7344765342960289,True
+c3,63,"height-, hr+, tg+",0.9027138,0.6571428571428573,True
+c4,554,"pp-, dbp+, tg-",0.9300144,0.6885379061371841,True
+c5,193,"hba1c+, fi+, urate+",0.56813157,0.4761658031088083,False
+c6,59,"hdl-, tg+, urate+",0.87049365,0.5796610169491525,False
+c7,2,"fg+, pp+, dbp-",1.0,1.0,False
+c8,18,"height+, ldl-, urate+",0.80296504,0.5416666666666666,False
+c9,20,"hba1c-, urate+, ldl-",0.7168163,0.19,False
+c10,3,"ldl+, tg-, hdl-",0.98373985,0.85,False

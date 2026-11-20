@@ -1,0 +1,253 @@
+run started 2026-11-20 15:31:18  raw=data/raw out=results extra=
+=== 01_prepare  15:31:20
+raw: data/raw
+128479 association rows, 4450 variants
+harmonised rows: 116497 (11982 dropped: allele mismatch or ambiguous palindromes)
+581 variants dropped: |z_SBP| < 4.0 or absent in the SBP GWAS
+BP variants: 3054 candidates; 1498 independent at r2<0.05 (clustering set)
+start: 1498 variants x 23 traits
+variants kept with <= 20% missing traits: 1490
+final: 1490 variants x 23 traits; 223 missing cells set to 0
+clustering input: per_sbp (22 traits)
+MR instruments (in clustering set, r2<0.001, F>=10): 363
+exposure scaling: per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253)
+=== 02_cluster  15:33:49
+matrix: 1490 variants x 22 traits
+bNMF phi scan (phi: K counts): 0.25: K15x2, K16x8, K17x6, K18x3, K19x1; 0.5: K9x1, K10x3, K11x10, K12x3, K13x3; 1.0: K4x1, K5x5, K6x12, K7x2
+bNMF K across 100 runs: {9: 11, 10: 26, 11: 41, 12: 20, 13: 2} -> K_bNMF = 11
+k-means stability by K (mean / weakest-cluster Jaccard): 3:0.74/0.65, 4:0.66/0.49, 5:0.70/0.59, 6:0.68/0.62, 7:0.63/0.44, 8:0.61/0.43
+K = 6 (largest K with every cluster bootstrap Jaccard >= 0.6 (gate); weakest cluster 0.62, mean 0.68)
+Ward silhouette by k: 2:0.075, 3:0.073, 4:0.067, 5:0.061, 6:0.029, 7:0.013, 8:-0.006, 9:-0.002, 10:-0.001
+concordance (ARI): kmeans_vs_hclust 0.209, kmeans_vs_bnmf 0.265, hclust_vs_bnmf 0.125
+kmeans clusters:
+   c0 (n=251): bmi-, bodyfat-, hdl+
+   c1 (n=338): bodyfat+, bmi+, hdl-
+   c2 (n=237): pp+, dbp-, height+
+   c3 (n=181): height-, pp+, ldl+
+   c4 (n=380): height+, tg-, fi-
+   c5 (n=103): tg+, hdl-, fi+
+hclust clusters:
+   c0 (n=601): tg-, hdl+, urate-
+   c1 (n=300): bodyfat+, bmi+, hba1c+
+   c2 (n=132): height+, alt-, bmi-
+   c3 (n=78): height-, tg+, pp+
+   c4 (n=299): hba1c-, bodyfat+, bmi+
+   c5 (n=80): tg+, hdl-, fi+
+bnmf clusters:
+   c0 (n=198): bmi-, bodyfat-, hdl+
+   c1 (n=103): bmi+, bodyfat+, crp+
+   c2 (n=277): pp+, dbp-, hr-
+   c3 (n=63): height-, hr+, tg+
+   c4 (n=554): pp-, dbp+, tg-
+   c5 (n=193): hba1c+, fi+, urate+
+   c6 (n=59): hdl-, tg+, urate+
+   c7 (n=2): fg+, pp+, dbp-
+   c8 (n=18): height+, ldl-, urate+
+   c9 (n=20): hba1c-, urate+, ldl-
+   c10 (n=3): ldl+, tg-, hdl-
+=== 03_stability  15:45:21
+kmeans noise-bootstrap ARI vs main: median 0.407 (IQR 0.364-0.442)
+kmeans stability by K (mean Jaccard): 2:0.93, 3:0.76, 4:0.64, 5:0.65, 6:0.63, 7:0.64, 8:0.60, 9:0.61, 10:0.58
+kmeans leave-one-trait-out ARI (lowest 5): height:0.40, uacr:0.42, bmi:0.52, pp:0.56, hr:0.57
+hclust noise-bootstrap ARI vs main: median 0.135 (IQR 0.110-0.163)
+hclust stability by K (mean Jaccard): 2:0.60, 3:0.50, 4:0.42, 5:0.38, 6:0.35, 7:0.33, 8:0.33, 9:0.32, 10:0.31
+hclust leave-one-trait-out ARI (lowest 5): hr:0.12, fg:0.15, alt:0.16, hdl:0.16, urate:0.16
+bNMF noise-bootstrap ARI vs main (20 reps): median 0.413
+kmeans per-cluster stability (K = 6):
+   c0 n= 251 Jaccard=0.57 keep_prob=0.67 [unstable] MR=flagged :: bmi-, bodyfat-, hdl+
+   c1 n= 338 Jaccard=0.66 keep_prob=0.69 [moderate] MR=yes :: bodyfat+, bmi+, hdl-
+   c2 n= 237 Jaccard=0.64 keep_prob=0.67 [moderate] MR=yes :: pp+, dbp-, height+
+   c3 n= 181 Jaccard=0.63 keep_prob=0.71 [moderate] MR=yes :: height-, pp+, ldl+
+   c4 n= 380 Jaccard=0.59 keep_prob=0.65 [unstable] MR=flagged :: height+, tg-, fi-
+   c5 n= 103 Jaccard=0.77 keep_prob=0.78 [stable] MR=yes :: tg+, hdl-, fi+
+hclust per-cluster stability (K = 6):
+   c0 n= 601 Jaccard=0.43 keep_prob=0.48 [unstable] MR=flagged :: tg-, hdl+, urate-
+   c1 n= 300 Jaccard=0.34 keep_prob=0.42 [unstable] MR=flagged :: bodyfat+, bmi+, hba1c+
+   c2 n= 132 Jaccard=0.20 keep_prob=0.26 [unstable] MR=flagged :: height+, alt-, bmi-
+   c3 n=  78 Jaccard=0.31 keep_prob=0.45 [unstable] MR=flagged :: height-, tg+, pp+
+   c4 n= 299 Jaccard=0.26 keep_prob=0.34 [unstable] MR=flagged :: hba1c-, bodyfat+, bmi+
+   c5 n=  80 Jaccard=0.50 keep_prob=0.51 [unstable] MR=flagged :: tg+, hdl-, fi+
+=== 04_mr  15:56:07
+IVW odds ratios per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253) (kmeans partition):
+outcome                       stroke_any  stroke_is  stroke_las  stroke_ces  stroke_svs   ich   cad  fg_stroke  fg_is  fg_chd
+cluster name                                                                                                                 
+all     all BP variants             1.36       1.36        1.68        1.18        1.50  1.31  1.36       1.29   1.30    1.33
+c0      bmi-, bodyfat-, hdl+        1.03       1.00        1.18        0.94        1.17  1.06  1.30       1.09   1.08    1.33
+c1      bodyfat+, bmi+, hdl-        1.33       1.40        1.84        1.13        1.54  1.16  1.46       1.09   1.12    1.28
+c2      pp+, dbp-, height+          1.48       1.54        2.41        1.28        1.72  1.21  1.30       1.38   1.34    1.36
+c3      height-, pp+, ldl+          1.51       1.41        1.36        1.22        1.50  1.20  1.47       1.52   1.53    1.45
+c4      height+, tg-, fi-           1.44       1.42        1.63        1.33        1.58  1.58  1.32       1.37   1.37    1.32
+c5      tg+, hdl-, fi+              1.31       1.28        2.14        0.73        1.20  1.16  1.47       1.43   1.55    1.38
+=== 05_compare  15:56:36
+partition    outcome  n_clusters  Q_between  Q_df    Q_p  perm_p  perm_null_median_Q  exploratory
+   kmeans stroke_any           4     3.4497     3 0.3273  0.3713              2.5358        False
+   kmeans  stroke_is           4     2.2100     3 0.5300  0.5537              2.4650        False
+   kmeans stroke_las           4     6.4248     3 0.0927  0.0865              2.2217        False
+   kmeans stroke_ces           4     6.8861     3 0.0756  0.1389              2.9802        False
+   kmeans stroke_svs           4     1.7731     3 0.6208  0.6182              2.3383        False
+   kmeans        ich           4     0.0436     3 0.9976  0.9985              2.5336        False
+   kmeans        cad           4     0.7695     3 0.8568  0.9020              3.0259        False
+   kmeans  fg_stroke           4     8.9503     3 0.0300  0.0650              2.9281        False
+   kmeans      fg_is           4     7.2318     3 0.0649  0.1119              2.8166        False
+   kmeans     fg_chd           4     0.7231     3 0.8678  0.9215              3.2580        False
+
+Strongest pairwise contrasts (per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253)):
+  stroke_las: pp+, dbp-, height+ vs bodyfat+, bmi+, hdl-: logOR ratio 1.44 (95% CI 0.88-2.50), diff p = 0.16
+  stroke_is: pp+, dbp-, height+ vs tg+, hdl-, fi+: logOR ratio 1.76 (95% CI 0.74-10.50), diff p = 0.17
+  stroke_any: pp+, dbp-, height+ vs bodyfat+, bmi+, hdl-: logOR ratio 1.36 (95% CI 0.88-2.29), diff p = 0.17
+  stroke_any: height-, pp+, ldl+ vs bodyfat+, bmi+, hdl-: logOR ratio 1.43 (95% CI 0.81-2.42), diff p = 0.18
+  stroke_any: height-, pp+, ldl+ vs tg+, hdl-, fi+: logOR ratio 1.55 (95% CI 0.76-4.87), diff p = 0.21
+  stroke_any: pp+, dbp-, height+ vs tg+, hdl-, fi+: logOR ratio 1.48 (95% CI 0.79-4.67), diff p = 0.22
+  stroke_is: pp+, dbp-, height+ vs bodyfat+, bmi+, hdl-: logOR ratio 1.27 (95% CI 0.77-2.11), diff p = 0.32
+  fg_is: height-, pp+, ldl+ vs pp+, dbp-, height+: logOR ratio 1.47 (95% CI 0.57-5.96), diff p = 0.37
+  fg_is: tg+, hdl-, fi+ vs pp+, dbp-, height+: logOR ratio 1.51 (95% CI 0.54-6.37), diff p = 0.39
+  fg_chd: height-, pp+, ldl+ vs bodyfat+, bmi+, hdl-: logOR ratio 1.50 (95% CI 0.46-6.24), diff p = 0.41
+=== 06_mvmr  15:58:07
+Conditional F: {'SBP via c1': 41.4, 'SBP via c2': 16.4, 'SBP via c3': 30.8, 'SBP via c5': 12.3, 'SBP (other variants)': 8.3, 'BMI': 22.5, 'LDL': 34.7, 'T2D': 11.8}
+cluster                 name    outcome  OR_univariable  OR_mvmr  OR_mvmr_lo  OR_mvmr_hi  p_mvmr  exploratory
+     c1 bodyfat+, bmi+, hdl- stroke_any           1.334    1.292       1.178       1.418   0.000        False
+     c2   pp+, dbp-, height+ stroke_any           1.481    1.467       1.308       1.645   0.000        False
+     c3   height-, pp+, ldl+ stroke_any           1.511    1.497       1.308       1.713   0.000        False
+     c5       tg+, hdl-, fi+ stroke_any           1.305    1.241       1.034       1.489   0.020        False
+     c1 bodyfat+, bmi+, hdl-  stroke_is           1.402    1.354       1.212       1.512   0.000        False
+     c2   pp+, dbp-, height+  stroke_is           1.535    1.523       1.334       1.738   0.000        False
+     c3   height-, pp+, ldl+  stroke_is           1.415    1.400       1.192       1.644   0.000        False
+     c5       tg+, hdl-, fi+  stroke_is           1.276    1.208       0.975       1.499   0.085        False
+     c1 bodyfat+, bmi+, hdl- stroke_las           1.845    1.710       1.325       2.207   0.000        False
+     c2   pp+, dbp-, height+ stroke_las           2.412    2.352       1.728       3.201   0.000        False
+     c3   height-, pp+, ldl+ stroke_las           1.364    1.331       0.919       1.927   0.130        False
+     c5       tg+, hdl-, fi+ stroke_las           2.136    1.740       1.055       2.868   0.030        False
+     c1 bodyfat+, bmi+, hdl- stroke_ces           1.132    1.094       0.898       1.332   0.373        False
+     c2   pp+, dbp-, height+ stroke_ces           1.281    1.266       0.999       1.604   0.051        False
+     c3   height-, pp+, ldl+ stroke_ces           1.217    1.209       0.908       1.611   0.194        False
+     c5       tg+, hdl-, fi+ stroke_ces           0.731    0.696       0.473       1.026   0.067        False
+     c1 bodyfat+, bmi+, hdl- stroke_svs           1.542    1.446       1.145       1.827   0.002        False
+     c2   pp+, dbp-, height+ stroke_svs           1.719    1.682       1.269       2.229   0.000        False
+     c3   height-, pp+, ldl+ stroke_svs           1.501    1.486       1.058       2.088   0.023        False
+     c5       tg+, hdl-, fi+ stroke_svs           1.202    1.067       0.676       1.683   0.781        False
+     c1 bodyfat+, bmi+, hdl-        ich           1.163    1.116       0.861       1.446   0.407        False
+     c2   pp+, dbp-, height+        ich           1.209    1.228       0.897       1.683   0.201        False
+     c3   height-, pp+, ldl+        ich           1.199    1.180       0.806       1.728   0.395        False
+     c5       tg+, hdl-, fi+        ich           1.162    1.277       0.775       2.105   0.338        False
+     c1 bodyfat+, bmi+, hdl-        cad           1.464    1.398       1.221       1.601   0.000        False
+     c2   pp+, dbp-, height+        cad           1.298    1.316       1.120       1.547   0.001        False
+     c3   height-, pp+, ldl+        cad           1.473    1.440       1.186       1.749   0.000        False
+     c5       tg+, hdl-, fi+        cad           1.471    1.340       1.032       1.741   0.028        False
+     c1 bodyfat+, bmi+, hdl-  fg_stroke           1.087    1.064       0.924       1.226   0.389        False
+     c2   pp+, dbp-, height+  fg_stroke           1.384    1.366       1.165       1.603   0.000        False
+     c3   height-, pp+, ldl+  fg_stroke           1.520    1.504       1.228       1.843   0.000        False
+     c5       tg+, hdl-, fi+  fg_stroke           1.427    1.320       1.008       1.728   0.044        False
+     c1 bodyfat+, bmi+, hdl-      fg_is           1.122    1.104       0.950       1.283   0.196        False
+     c2   pp+, dbp-, height+      fg_is           1.337    1.319       1.113       1.563   0.001        False
+     c3   height-, pp+, ldl+      fg_is           1.532    1.517       1.223       1.882   0.000        False
+     c5       tg+, hdl-, fi+      fg_is           1.551    1.424       1.069       1.896   0.016        False
+     c1 bodyfat+, bmi+, hdl-     fg_chd           1.283    1.245       1.040       1.489   0.017        False
+     c2   pp+, dbp-, height+     fg_chd           1.356    1.372       1.121       1.680   0.002        False
+     c3   height-, pp+, ldl+     fg_chd           1.454    1.423       1.101       1.841   0.007        False
+     c5       tg+, hdl-, fi+     fg_chd           1.381    1.250       0.888       1.760   0.200        False
+=== 07_report  15:58:11
+# Results summary (real data)
+
+Exposure scaling: per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253). Clustering variants: 1490; MR instruments: 363. Traits: sbp, ldl, tg, hdl, height, fg, egfr, hr, alcohol, crp, hba1c, pp, dbp, t2d, bmi, urate, alt, bodyfat, fi, smoking, na_urine, k_urine, uacr.
+
+## Clusters (kmeans, K = 6: largest K with every cluster bootstrap Jaccard >= 0.6 (gate); weakest cluster 0.62, mean 0.68)
+
+bNMF K counts {'9': 11, '10': 26, '11': 41, '12': 20, '13': 2}. Agreement between methods (ARI): kmeans vs hclust 0.21, kmeans vs bnmf 0.27, hclust vs bnmf 0.12. 4 of 6 clusters pass the stability gate (Jaccard >= 0.6).
+
+| cluster | n | top traits | bootstrap Jaccard | noise keep prob | stability | to MR |
+|---|---|---|---|---|---|---|
+| c0 | 251 | bmi-, bodyfat-, hdl+ | 0.57 | 0.67 | unstable | no |
+| c1 | 338 | bodyfat+, bmi+, hdl- | 0.66 | 0.69 | moderate | yes |
+| c2 | 237 | pp+, dbp-, height+ | 0.64 | 0.67 | moderate | yes |
+| c3 | 181 | height-, pp+, ldl+ | 0.63 | 0.71 | moderate | yes |
+| c4 | 380 | height+, tg-, fi- | 0.59 | 0.65 | unstable | no |
+| c5 | 103 | tg+, hdl-, fi+ | 0.77 | 0.78 | stable | yes |
+
+## IVW odds ratios per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253) (kmeans)
+
+| cluster | Any stroke | Ischaemic stroke | Large-artery stroke | Cardioembolic stroke | Small-vessel stroke | Intracerebral haemorrhage | Coronary artery disease | FinnGen stroke | FinnGen ischaemic stroke | FinnGen CHD |
+|---|---|---|---|---|---|---|---|---|---|---|
+| all | 1.36 (1.30-1.42) | 1.36 (1.30-1.43) | 1.68 (1.50-1.87) | 1.18 (1.08-1.29) | 1.50 (1.35-1.68) | 1.31 (1.16-1.47) | 1.36 (1.28-1.45) | 1.29 (1.21-1.38) | 1.30 (1.21-1.39) | 1.33 (1.23-1.44) |
+| c0 | 1.03 (0.92-1.14) | 1.00 (0.87-1.15) | 1.18 (0.84-1.64) | 0.94 (0.75-1.18) | 1.17 (0.86-1.58) | 1.06 (0.78-1.43) | 1.30 (1.13-1.51) | 1.09 (0.90-1.32) | 1.08 (0.89-1.32) | 1.33 (1.10-1.60) |
+| c1 | 1.33 (1.21-1.48) | 1.40 (1.24-1.58) | 1.84 (1.44-2.36) | 1.13 (0.92-1.39) | 1.54 (1.19-1.99) | 1.16 (0.90-1.50) | 1.46 (1.27-1.69) | 1.09 (0.94-1.25) | 1.12 (0.97-1.30) | 1.28 (1.08-1.53) |
+| c2 | 1.48 (1.33-1.65) | 1.54 (1.35-1.75) | 2.41 (1.83-3.18) | 1.28 (1.00-1.65) | 1.72 (1.31-2.26) | 1.21 (0.87-1.68) | 1.30 (1.00-1.68) | 1.38 (1.18-1.63) | 1.34 (1.12-1.60) | 1.36 (0.99-1.86) |
+| c3 | 1.51 (1.30-1.76) | 1.41 (1.20-1.67) | 1.36 (0.96-1.95) | 1.22 (0.91-1.63) | 1.50 (1.04-2.16) | 1.20 (0.84-1.71) | 1.47 (1.25-1.74) | 1.52 (1.22-1.89) | 1.53 (1.21-1.94) | 1.45 (1.15-1.84) |
+| c4 | 1.44 (1.35-1.54) | 1.42 (1.31-1.53) | 1.63 (1.37-1.93) | 1.33 (1.16-1.54) | 1.58 (1.32-1.89) | 1.58 (1.29-1.92) | 1.32 (1.20-1.45) | 1.37 (1.24-1.51) | 1.37 (1.24-1.52) | 1.32 (1.19-1.47) |
+| c5 | 1.31 (1.10-1.55) | 1.28 (1.01-1.61) | 2.14 (1.28-3.55) | 0.73 (0.51-1.05) | 1.20 (0.76-1.90) | 1.16 (0.68-1.97) | 1.47 (1.19-1.82) | 1.43 (1.07-1.90) | 1.55 (1.17-2.06) | 1.38 (1.06-1.79) |
+
+## Do clusters differ? (stable clusters only)
+
+| outcome | Q_between | df | p (chi2) | p (permutation) |
+|---|---|---|---|---|
+| Any stroke | 3.4 | 3 | 0.33 | 0.371 |
+| Ischaemic stroke | 2.2 | 3 | 0.53 | 0.554 |
+| Large-artery stroke | 6.4 | 3 | 0.093 | 0.0865 |
+| Cardioembolic stroke | 6.9 | 3 | 0.076 | 0.139 |
+| Small-vessel stroke | 1.8 | 3 | 0.62 | 0.618 |
+| Intracerebral haemorrhage | 0.0 | 3 | 1 | 0.999 |
+| Coronary artery disease | 0.8 | 3 | 0.86 | 0.902 |
+| FinnGen stroke | 9.0 | 3 | 0.03 | 0.065 |
+| FinnGen ischaemic stroke | 7.2 | 3 | 0.065 | 0.112 |
+| FinnGen CHD | 0.7 | 3 | 0.87 | 0.922 |
+
+## Strongest pairwise contrasts
+
+- Large-artery stroke: c2 (pp+, dbp-, height+) vs c1 (bodyfat+, bmi+, hdl-): log-OR ratio 1.44 (bootstrap 95% CI 0.88 to 2.50); OR ratio 1.31 per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253); difference p = 0.16
+- Ischaemic stroke: c2 (pp+, dbp-, height+) vs c5 (tg+, hdl-, fi+): log-OR ratio 1.76 (bootstrap 95% CI 0.74 to 10.50); OR ratio 1.20 per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253); difference p = 0.17
+- Any stroke: c2 (pp+, dbp-, height+) vs c1 (bodyfat+, bmi+, hdl-): log-OR ratio 1.36 (bootstrap 95% CI 0.88 to 2.29); OR ratio 1.11 per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253); difference p = 0.17
+- Any stroke: c3 (height-, pp+, ldl+) vs c1 (bodyfat+, bmi+, hdl-): log-OR ratio 1.43 (bootstrap 95% CI 0.81 to 2.42); OR ratio 1.13 per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253); difference p = 0.18
+- Any stroke: c3 (height-, pp+, ldl+) vs c5 (tg+, hdl-, fi+): log-OR ratio 1.55 (bootstrap 95% CI 0.76 to 4.87); OR ratio 1.16 per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253); difference p = 0.21
+- Any stroke: c2 (pp+, dbp-, height+) vs c5 (tg+, hdl-, fi+): log-OR ratio 1.48 (bootstrap 95% CI 0.79 to 4.67); OR ratio 1.13 per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253); difference p = 0.22
+- Ischaemic stroke: c2 (pp+, dbp-, height+) vs c1 (bodyfat+, bmi+, hdl-): log-OR ratio 1.27 (bootstrap 95% CI 0.77 to 2.11); OR ratio 1.10 per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253); difference p = 0.32
+- FinnGen ischaemic stroke: c3 (height-, pp+, ldl+) vs c2 (pp+, dbp-, height+): log-OR ratio 1.47 (bootstrap 95% CI 0.57 to 5.96); OR ratio 1.15 per 10 mmHg higher SBP (unit blank in OpenGWAS; inferred mmHg from median |beta| = 0.253); difference p = 0.37
+
+## Pleiotropy checks
+
+- MR-Egger intercept p < 0.05 in 2 of 70 cluster x outcome analyses.
+- MR-PRESSO global test p < 0.05 in 43 analyses.
+
+## Univariable vs multivariable MR (adjusted for BMI, LDL, T2D)
+
+| cluster | outcome | OR univariable | OR MVMR (95% CI) |
+|---|---|---|---|
+| c1 bodyfat+, bmi+, hdl- | Any stroke | 1.33 | 1.29 (1.18-1.42) |
+| c2 pp+, dbp-, height+ | Any stroke | 1.48 | 1.47 (1.31-1.64) |
+| c3 height-, pp+, ldl+ | Any stroke | 1.51 | 1.50 (1.31-1.71) |
+| c5 tg+, hdl-, fi+ | Any stroke | 1.31 | 1.24 (1.03-1.49) |
+| c1 bodyfat+, bmi+, hdl- | Ischaemic stroke | 1.40 | 1.35 (1.21-1.51) |
+| c2 pp+, dbp-, height+ | Ischaemic stroke | 1.54 | 1.52 (1.33-1.74) |
+| c3 height-, pp+, ldl+ | Ischaemic stroke | 1.41 | 1.40 (1.19-1.64) |
+| c5 tg+, hdl-, fi+ | Ischaemic stroke | 1.28 | 1.21 (0.97-1.50) |
+| c1 bodyfat+, bmi+, hdl- | Large-artery stroke | 1.84 | 1.71 (1.32-2.21) |
+| c2 pp+, dbp-, height+ | Large-artery stroke | 2.41 | 2.35 (1.73-3.20) |
+| c3 height-, pp+, ldl+ | Large-artery stroke | 1.36 | 1.33 (0.92-1.93) |
+| c5 tg+, hdl-, fi+ | Large-artery stroke | 2.14 | 1.74 (1.06-2.87) |
+| c1 bodyfat+, bmi+, hdl- | Cardioembolic stroke | 1.13 | 1.09 (0.90-1.33) |
+| c2 pp+, dbp-, height+ | Cardioembolic stroke | 1.28 | 1.27 (1.00-1.60) |
+| c3 height-, pp+, ldl+ | Cardioembolic stroke | 1.22 | 1.21 (0.91-1.61) |
+| c5 tg+, hdl-, fi+ | Cardioembolic stroke | 0.73 | 0.70 (0.47-1.03) |
+| c1 bodyfat+, bmi+, hdl- | Small-vessel stroke | 1.54 | 1.45 (1.14-1.83) |
+| c2 pp+, dbp-, height+ | Small-vessel stroke | 1.72 | 1.68 (1.27-2.23) |
+| c3 height-, pp+, ldl+ | Small-vessel stroke | 1.50 | 1.49 (1.06-2.09) |
+| c5 tg+, hdl-, fi+ | Small-vessel stroke | 1.20 | 1.07 (0.68-1.68) |
+| c1 bodyfat+, bmi+, hdl- | Intracerebral haemorrhage | 1.16 | 1.12 (0.86-1.45) |
+| c2 pp+, dbp-, height+ | Intracerebral haemorrhage | 1.21 | 1.23 (0.90-1.68) |
+| c3 height-, pp+, ldl+ | Intracerebral haemorrhage | 1.20 | 1.18 (0.81-1.73) |
+| c5 tg+, hdl-, fi+ | Intracerebral haemorrhage | 1.16 | 1.28 (0.77-2.11) |
+| c1 bodyfat+, bmi+, hdl- | Coronary artery disease | 1.46 | 1.40 (1.22-1.60) |
+| c2 pp+, dbp-, height+ | Coronary artery disease | 1.30 | 1.32 (1.12-1.55) |
+| c3 height-, pp+, ldl+ | Coronary artery disease | 1.47 | 1.44 (1.19-1.75) |
+| c5 tg+, hdl-, fi+ | Coronary artery disease | 1.47 | 1.34 (1.03-1.74) |
+| c1 bodyfat+, bmi+, hdl- | FinnGen stroke | 1.09 | 1.06 (0.92-1.23) |
+| c2 pp+, dbp-, height+ | FinnGen stroke | 1.38 | 1.37 (1.16-1.60) |
+| c3 height-, pp+, ldl+ | FinnGen stroke | 1.52 | 1.50 (1.23-1.84) |
+| c5 tg+, hdl-, fi+ | FinnGen stroke | 1.43 | 1.32 (1.01-1.73) |
+| c1 bodyfat+, bmi+, hdl- | FinnGen ischaemic stroke | 1.12 | 1.10 (0.95-1.28) |
+| c2 pp+, dbp-, height+ | FinnGen ischaemic stroke | 1.34 | 1.32 (1.11-1.56) |
+| c3 height-, pp+, ldl+ | FinnGen ischaemic stroke | 1.53 | 1.52 (1.22-1.88) |
+| c5 tg+, hdl-, fi+ | FinnGen ischaemic stroke | 1.55 | 1.42 (1.07-1.90) |
+| c1 bodyfat+, bmi+, hdl- | FinnGen CHD | 1.28 | 1.24 (1.04-1.49) |
+| c2 pp+, dbp-, height+ | FinnGen CHD | 1.36 | 1.37 (1.12-1.68) |
+| c3 height-, pp+, ldl+ | FinnGen CHD | 1.45 | 1.42 (1.10-1.84) |
+| c5 tg+, hdl-, fi+ | FinnGen CHD | 1.38 | 1.25 (0.89-1.76) |
+run finished 2026-11-20 15:58:35

@@ -1,0 +1,139 @@
+key,id,trait,author,year,population,sample_size,ncase
+sbp,ieu-b-38,systolic blood pressure,"Evangelou, E",2018.0,European,757601.0,
+sbp,ebi-a-GCST90029011,Systolic blood pressure,Loh PR,2018.0,European,469767.0,
+sbp,ukb-b-20175,"Systolic blood pressure, automated reading",Ben Elsworth,2018.0,European,436419.0,
+sbp,ieu-b-5138,Systolic Blood Pressure (SBP),Tang H,2024.0,European,435859.0,
+sbp,ebi-a-GCST90025968,Systolic blood pressure,Barton AR,2021.0,European,422713.0,
+sbp,ieu-b-5163,"Systolic blood pressure, automated and manual reading, medication adjusted (censored normal regression)",Yap AJY,2026.0,European,407960.0,
+dbp,ieu-b-39,diastolic blood pressure,"Evangelou, E",2018.0,European,757601.0,
+dbp,ebi-a-GCST90029010,Diastolic blood pressure,Loh PR,2018.0,European,490469.0,
+dbp,ukb-b-7992,"Diastolic blood pressure, automated reading",Ben Elsworth,2018.0,European,436424.0,
+dbp,ieu-b-5139,Diastolic Blood Pressure (DBP),Tang H,2024.0,European,436083.0,
+dbp,ebi-a-GCST90025981,Diastolic blood pressure,Barton AR,2021.0,European,422713.0,
+dbp,ebi-a-GCST90014017,Diastolic blood pressure automated reading (UKB data field 4079),Mbatchou J,2021.0,European,385801.0,
+pp,ieu-b-5140,Pulse Pressure (PP),Tang H,2024.0,European,435478.0,
+pp,ebi-a-GCST90018970,Pulse pressure,Sakaue S,2021.0,European,360863.0,
+bmi,ukb-b-19953,Body mass index (BMI),Ben Elsworth,2018.0,European,461460.0,
+bmi,ieu-b-40,body mass index,"Yengo, L",2018.0,European,681275.0,
+bmi,ebi-a-GCST90029007,Body mass index,Loh PR,2018.0,European,532396.0,
+bmi,ebi-a-GCST90025994,Body mass index,Barton AR,2021.0,European,457756.0,
+bmi,ukb-b-2303,Body mass index (BMI),Ben Elsworth,2018.0,European,454884.0,
+bmi,ebi-a-GCST90013974,Body mass index (UKB data field 21001),Mbatchou J,2021.0,European,407609.0,
+whradjbmi,ebi-a-GCST90025996,Waist-to-hip ratio adjusted for BMI,Barton AR,2021.0,European,458349.0,
+whradjbmi,ieu-a-79,Waist-to-hip ratio,Shungin D,2015.0,European,210082.0,
+whradjbmi,ieu-a-81,Waist-to-hip ratio,Shungin D,2015.0,European,116740.0,
+whradjbmi,ieu-a-83,Waist-to-hip ratio,Shungin D,2015.0,European,93478.0,
+bodyfat,ukb-b-8909,Body fat percentage,Ben Elsworth,2018.0,European,454633.0,
+bodyfat,ebi-a-GCST90013975,Body fat percentage (UKB data field 23099),Mbatchou J,2021.0,European,401772.0,
+bodyfat,ukb-a-264,Body fat percentage,Neale,2017.0,European,331117.0,
+bodyfat,ebi-a-GCST003435,Body fat percentage,Lu Y,2016.0,European,65831.0,
+height,ebi-a-GCST90029008,Height,Loh PR,2018.0,European,673878.0,
+height,ebi-a-GCST90025949,Height,Barton AR,2021.0,European,458235.0,
+height,ebi-a-GCST90018959,Height,Sakaue S,2021.0,European,360388.0,
+height,ieu-a-89,Height,Wood AR,2014.0,European,253288.0,
+height,ukb-d-20544_5,Mental health problems ever diagnosed by a professional: Any other phobia (eg disabling fear of heights or spiders),Neale lab,2018.0,European,117710.0,1591.0
+height,ieu-b-4814,Height,Howe LJ,2022.0,European,99997.0,
+ldl,ieu-b-110,LDL cholesterol,"Richardson, Tom",2020.0,European,440546.0,
+ldl,ebi-a-GCST90018961,LDL cholesterol,Sakaue S,2021.0,European,343621.0,
+ldl,ieu-b-5089,LDL cholesterol,Si Fang,2022.0,European,201678.0,
+ldl,ebi-a-GCST90092996,VLDL cholesterol levels,Richardson TG,2022.0,European,115082.0,
+ldl,ebi-a-GCST90092883,LDL cholesterol levels,Richardson TG,2022.0,European,115082.0,
+ldl,ebi-a-GCST90092814,Clinical LDL cholesterol levels,Richardson TG,2022.0,European,115082.0,
+hdl,ieu-b-109,HDL cholesterol,"Richardson, Tom",2020.0,European,403943.0,
+hdl,ebi-a-GCST90025956,HDL cholesterol levels,Barton AR,2021.0,European,400754.0,
+hdl,ebi-a-GCST90018956,HDL cholesterol,Sakaue S,2021.0,European,315133.0,
+hdl,ebi-a-GCST90092822,HDL cholesterol levels,Richardson TG,2022.0,European,115082.0,
+hdl,met-d-HDL_C,HDL cholesterol,Borges CM,2020.0,European,115078.0,
+hdl,ebi-a-GCST000755,HDL cholesterol,Teslovich TM,2010.0,European,99900.0,
+tg,ieu-b-111,triglycerides,"Richardson, Tom",2020.0,European,441016.0,
+tg,ebi-a-GCST90018975,Triglycerides,Sakaue S,2021.0,European,343992.0,
+tg,ebi-a-GCST90093039,Triglycerides to total lipids ratio in very small VLDL,Richardson TG,2022.0,European,115082.0,
+tg,ebi-a-GCST90092992,Total triglycerides levels,Richardson TG,2022.0,European,115082.0,
+tg,ebi-a-GCST90092979,Triglycerides to total lipids ratio in small VLDL,Richardson TG,2022.0,European,115082.0,
+tg,ebi-a-GCST90092967,Triglycerides to total lipids ratio in small LDL,Richardson TG,2022.0,European,115082.0,
+t2d,ebi-a-GCST006867,Type 2 diabetes,Xue A,2018.0,European,655666.0,61714.0
+t2d,ebi-a-GCST90018926,Type 2 diabetes,Sakaue S,2021.0,European,490089.0,38841.0
+t2d,finn-b-E4_DM2,Type 2 diabetes,NA,2021.0,European,,32469.0
+t2d,finn-b-T2D,"Type 2 diabetes, definitions combined",NA,2021.0,European,,29193.0
+t2d,finn-b-E4_DM2_STRICT,"Type 2 diabetes, strict (exclude DM1)",NA,2021.0,European,,29166.0
+t2d,finn-b-T2D_INCLAVO,"Type 2 diabetes, definitions combined, including avohilmo",NA,2021.0,European,,28717.0
+fg,ebi-a-GCST90002232,Fasting glucose,Chen J,2021.0,European,200622.0,
+fg,ieu-b-113,Fasting glucose,Manning AK,2012.0,European,58074.0,
+fg,ieu-b-4761,Fasting glucose,Dupuis J,2010.0,European,46186.0,
+fi,ebi-a-GCST90002238,Fasting insulin,Chen J,2021.0,European,151013.0,
+fi,ieu-b-115,Fasting insulin,Manning AK,2012.0,European,51750.0,
+hba1c,ebi-a-GCST90014006,Glycated haemoglobin HbA1c levels (UKB data field 30750),Mbatchou J,2021.0,European,389889.0,
+hba1c,ebi-a-GCST90002244,Glycated hemoglobin levels,Chen J,2021.0,European,146806.0,
+hba1c,ieu-b-103,HbA1C,Soranzo N,2010.0,European,46368.0,
+hba1c,ieu-b-104,HbA1C,Soranzo N,2010.0,European,46368.0,
+hba1c,ieu-b-4842,HbA1c,Howe LJ,2022.0,European,45734.0,
+hba1c,ebi-a-GCST004939,Glycated hemoglobin levels,Prins BP,2017.0,European,9436.0,
+egfr,ebi-a-GCST90103634,Estimated glomerular filtration rate (creatinine),Stanzick KJ,2021.0,European,1004040.0,
+egfr,ebi-a-GCST003372,Glomerular filtration rate (creatinine),Pattaro C,2016.0,European,133413.0,
+egfr,ieu-b-4832,Estimated glomerular filtration rate,Howe LJ,2022.0,European,76511.0,
+egfr,ebi-a-GCST005063,Glomerular filtration rate,Prins BP,2017.0,European,9961.0,
+egfr,ebi-a-GCST90085790,VEGFR 3 plasma levels,Caron B,2022.0,European,400.0,
+egfr,ebi-a-GCST90085789,VEGFR 2 plasma levels,Caron B,2022.0,European,400.0,
+urate,ieu-b-5137,Urate,Tang H,2024.0,European,440466.0,
+urate,ebi-a-GCST90025965,Urate levels,Barton AR,2021.0,European,437354.0,
+urate,ebi-a-GCST90014015,Urate levels (UKB data field 30880),Mbatchou J,2021.0,European,389404.0,
+urate,ebi-a-GCST90018977,Serum uric acid levels,Sakaue S,2021.0,European,343836.0,
+urate,ukb-d-2654_7,Non-butter spread type details: Polyunsaturated/sunflower oil based spread (eg: Flora),Neale lab,2018.0,European,190094.0,64325.0
+urate,ebi-a-GCST90092981,Ratio of saturated fatty acids to total fatty acids,Richardson TG,2022.0,European,115006.0,
+uacr,ukb-d-30500_irnt,Microalbumin in urine,Neale lab,2018.0,European,108706.0,
+uacr,ieu-a-1107,Urinary albumin-to-creatinine ratio,Teumer,2015.0,European,54450.0,
+uacr,ieu-a-1101,Urinary albumin-to-creatinine ratio,Teumer,2015.0,European,46061.0,
+uacr,ieu-a-1100,Urinary albumin-to-creatinine ratio,Teumer,2015.0,European,5825.0,
+na_urine,ebi-a-GCST90013989,Sodium in urine (UKB data field 30530),Mbatchou J,2021.0,European,396020.0,
+na_urine,ukb-a-335,Sodium in urine,Neale,2017.0,European,326831.0,
+k_urine,ebi-a-GCST90013988,Potassium in urine (UKB data field 30520),Mbatchou J,2021.0,European,395995.0,
+k_urine,ukb-a-334,Potassium in urine,Neale,2017.0,European,326816.0,
+hr,ukb-b-18103,"Pulse rate, automated reading",Ben Elsworth,2018.0,European,436424.0,
+hr,ukb-a-3,Pulse rate  automated reading,Neale,2017.0,European,317756.0,
+hr,ukb-b-15892,Pulse rate,Ben Elsworth,2018.0,European,151546.0,
+hr,ukb-a-363,Pulse rate,Neale,2017.0,European,110153.0,
+hr,ukb-b-16609,Target heart rate achieved,Ben Elsworth,2018.0,European,68426.0,6995.0
+hr,ukb-b-11361,"ECG, heart rate",Ben Elsworth,2018.0,European,68160.0,
+crp,ebi-a-GCST90029070,C-reactive protein levels,Said S,2022.0,European,575531.0,
+crp,ebi-a-GCST90025959,C-reactive protein levels,Barton AR,2021.0,European,436939.0,
+crp,ebi-a-GCST90018950,C-reactive protein,Sakaue S,2021.0,European,353466.0,
+crp,ieu-b-35,C-Reactive protein level,"Ligthart, S",2018.0,European,204402.0,
+crp,ieu-b-4764,C-reactive protein,Howe LJ,2021.0,European,61308.0,
+crp,ieu-b-4763,C-reactive protein,Howe LJ,2021.0,European,20623.0,
+alt,ebi-a-GCST90025979,Alanine aminotransferase levels,Barton AR,2021.0,European,437724.0,
+alt,ebi-a-GCST90013992,Alanine aminotransferase levels (UKB data field 30620),Mbatchou J,2021.0,European,389733.0,
+alt,ebi-a-GCST90018943,Alanine aminotransferase levels,Sakaue S,2021.0,European,344136.0,
+alt,prot-a-1264,Alanine aminotransferase 1,Sun BB,2018.0,European,3301.0,
+alt,ukb-d-30620_raw,Alanine aminotransferase,Neale lab,2018.0,European,,
+alt,ukb-d-30620_irnt,Alanine aminotransferase,Neale lab,2018.0,European,,
+alcohol,ieu-b-73,Alcoholic drinks per week,"Liu, M",2019.0,European,335394.0,
+alcohol,ukb-d-20405_1,"Ever had known person concerned about, or recommend reduction of, alcohol consumption: Yes, but not in the last year",Neale lab,2018.0,European,117880.0,5482.0
+alcohol,ukb-d-20405_0,"Ever had known person concerned about, or recommend reduction of, alcohol consumption: No",Neale lab,2018.0,European,117880.0,107474.0
+alcohol,ukb-d-20405_2,"Ever had known person concerned about, or recommend reduction of, alcohol consumption: Yes, during the last year",Neale lab,2018.0,European,117880.0,4924.0
+alcohol,ieu-a-1283,Alcohol consumption,Clarke,2017.0,European,112117.0,
+alcohol,ieu-b-4834,Alcohol consumption,Howe LJ,2022.0,European,83626.0,
+smoking,ieu-b-4877,smoking initiation,Liu M,2019.0,European,607291.0,311629.0
+smoking,ieu-b-24,Age Of Smoking Initiation,"Liu, M",2019.0,European,341427.0,
+smoking,ieu-a-964,Age of smoking initiation,Furberg,2010.0,European,47961.0,
+stroke_any,ebi-a-GCST005838,Stroke,Malik R,2018.0,European,446696.0,40585.0
+stroke_any,ebi-a-GCST006906,Stroke,Malik R,2018.0,European,446696.0,40585.0
+stroke_is,ebi-a-GCST006908,Ischemic stroke,Malik R,2018.0,European,440328.0,34217.0
+stroke_is,ebi-a-GCST005843,Ischemic stroke,Malik R,2018.0,European,440328.0,34217.0
+stroke_is,ieu-a-1108,Ischemic stroke,Malik,2016.0,Mixed,29633.0,10307.0
+stroke_is,ebi-a-GCST90018864,Ischemic stroke,Sakaue S,2021.0,European,484121.0,11929.0
+stroke_las,ebi-a-GCST006907,Ischemic stroke (large artery atherosclerosis),Malik R,2018.0,European,150765.0,4373.0
+stroke_las,ebi-a-GCST005840,Ischemic stroke (large artery atherosclerosis),Malik R,2018.0,European,150765.0,4373.0
+stroke_ces,ebi-a-GCST006910,Ischemic stroke (cardioembolic),Malik R,2018.0,European,211763.0,7193.0
+stroke_ces,ebi-a-GCST005842,Ischemic stroke (cardioembolic),Malik R,2018.0,European,211763.0,7193.0
+stroke_ces,ieu-a-1109,Cardioembolic stroke,Malik,2016.0,Mixed,21185.0,1859.0
+stroke_svs,ebi-a-GCST006909,Ischemic stroke (small-vessel),Malik R,2018.0,European,198048.0,5386.0
+stroke_svs,ebi-a-GCST005841,Ischemic stroke (small-vessel),Malik R,2018.0,European,198048.0,5386.0
+ich,ebi-a-GCST90018870,Intracerebral hemorrhage,Sakaue S,2021.0,European,473513.0,1935.0
+cad,ebi-a-GCST003116,Coronary artery disease,Nikpay M,2015.0,European,141217.0,42096.0
+cad,ebi-a-GCST90013868,Coronary artery disease (SPA correction),Mbatchou J,2021.0,European,352063.0,
+cad,ebi-a-GCST90013864,Coronary artery disease (Firth correction),Mbatchou J,2021.0,European,352063.0,
+fg_stroke,finn-b-I9_STR_EXNONE,"""Stroke, excluding SAH"" (no controls excluded)",NA,2021.0,European,,11734.0
+fg_stroke,finn-b-I9_STR,"Stroke, excluding SAH",NA,2021.0,European,,11734.0
+fg_is,finn-b-I9_STR_EXH_EXNONE,"""Ischaemic Stroke, excluding all haemorrhages"" (no controls excluded)",NA,2021.0,European,,10551.0
+fg_is,finn-b-I9_STR_EXH,"Ischaemic Stroke, excluding all haemorrhages",NA,2021.0,European,,10551.0
+fg_chd,finn-b-I9_CHD,Major coronary heart disease event,NA,2021.0,European,,21012.0

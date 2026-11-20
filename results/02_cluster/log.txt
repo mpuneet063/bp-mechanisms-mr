@@ -1,0 +1,33 @@
+matrix: 1490 variants x 22 traits
+bNMF phi scan (phi: K counts): 0.25: K15x2, K16x8, K17x6, K18x3, K19x1; 0.5: K9x1, K10x3, K11x10, K12x3, K13x3; 1.0: K4x1, K5x5, K6x12, K7x2
+bNMF K across 100 runs: {9: 11, 10: 26, 11: 41, 12: 20, 13: 2} -> K_bNMF = 11
+k-means stability by K (mean / weakest-cluster Jaccard): 3:0.74/0.65, 4:0.66/0.49, 5:0.70/0.59, 6:0.68/0.62, 7:0.63/0.44, 8:0.61/0.43
+K = 6 (largest K with every cluster bootstrap Jaccard >= 0.6 (gate); weakest cluster 0.62, mean 0.68)
+Ward silhouette by k: 2:0.075, 3:0.073, 4:0.067, 5:0.061, 6:0.029, 7:0.013, 8:-0.006, 9:-0.002, 10:-0.001
+concordance (ARI): kmeans_vs_hclust 0.209, kmeans_vs_bnmf 0.265, hclust_vs_bnmf 0.125
+kmeans clusters:
+   c0 (n=251): bmi-, bodyfat-, hdl+
+   c1 (n=338): bodyfat+, bmi+, hdl-
+   c2 (n=237): pp+, dbp-, height+
+   c3 (n=181): height-, pp+, ldl+
+   c4 (n=380): height+, tg-, fi-
+   c5 (n=103): tg+, hdl-, fi+
+hclust clusters:
+   c0 (n=601): tg-, hdl+, urate-
+   c1 (n=300): bodyfat+, bmi+, hba1c+
+   c2 (n=132): height+, alt-, bmi-
+   c3 (n=78): height-, tg+, pp+
+   c4 (n=299): hba1c-, bodyfat+, bmi+
+   c5 (n=80): tg+, hdl-, fi+
+bnmf clusters:
+   c0 (n=198): bmi-, bodyfat-, hdl+
+   c1 (n=103): bmi+, bodyfat+, crp+
+   c2 (n=277): pp+, dbp-, hr-
+   c3 (n=63): height-, hr+, tg+
+   c4 (n=554): pp-, dbp+, tg-
+   c5 (n=193): hba1c+, fi+, urate+
+   c6 (n=59): hdl-, tg+, urate+
+   c7 (n=2): fg+, pp+, dbp-
+   c8 (n=18): height+, ldl-, urate+
+   c9 (n=20): hba1c-, urate+, ldl-
+   c10 (n=3): ldl+, tg-, hdl-

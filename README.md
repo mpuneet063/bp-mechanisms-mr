@@ -128,6 +128,10 @@ pleiotropy, writing the data in the same format as the fetch script. Fast-mode r
 * **A cluster's MR estimate is the effect of that set of variants.** It becomes "BP acting through mechanism k" only to the extent the MVMR adjustment captures the pleiotropy.
 * **The Steiger filter uses a latent-scale r² for binary outcomes without prevalence adjustment.** It is a sensitivity analysis only.
 
+## AI assistance
+
+The code in this repository was generated with Claude Opus 5.5 (Anthropic).
+
 ## References
 
 * Keaton JM et al. Genome-wide analysis in over 1 million individuals of European ancestry yields improved polygenic risk scores for blood pressure traits. *Nat Genet* 2024;56:778–791.
